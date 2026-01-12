@@ -8,6 +8,7 @@ type AudioFile = {
   title: string;
   artist: string;
   album: string;
+  albumartist: string;
   year: string;
 }
 
@@ -31,6 +32,7 @@ export default function HomePage() {
             title: metadata.common.title ?? file.name,
             artist: metadata.common.artist ?? 'Unknown',
             album: metadata.common.album ?? 'Unknown',
+            albumartist: metadata.common.albumartist ?? 'Unknown',
             year: metadata.common.year?.toString() ?? 'Unknown',
           };
         } catch (err) {
@@ -40,12 +42,14 @@ export default function HomePage() {
             title: file.name,
             artist: 'Unknown',
             album: 'Unknown',
+            albumartist: 'Unknown',
             year: 'Unknown',
           };
         }
       })
     );
-
+    console.log(data);
+    console.log(files);
     setCollection(data);
   };
 
@@ -71,9 +75,10 @@ export default function HomePage() {
           <thead className="bg-gray-100">
             <tr>
               <th className="border px-4 py-2">#</th>
-              <th className="border px-4 py-2">Title</th>
               <th className="border px-4 py-2">Artist</th>
+              <th className="border px-4 py-2">Title</th>
               <th className="border px-4 py-2">Album</th>
+              <th className="border px-4 py-2">Album Artist</th>
               <th className="border px-4 py-2">Year</th>
             </tr>
           </thead>
@@ -81,9 +86,10 @@ export default function HomePage() {
             {collection.map((file) => (
               <tr key={file.id} className="text-center">
                 <td className="border px-4 py-2">{file.id + 1}</td>
-                <td className="border px-4 py-2">{file.title}</td>
                 <td className="border px-4 py-2">{file.artist}</td>
+                <td className="border px-4 py-2">{file.title}</td>
                 <td className="border px-4 py-2">{file.album}</td>
+                <td className="border px-4 py-2">{file.albumartist}</td>
                 <td className="border px-4 py-2">{file.year}</td>
               </tr>
             ))}
