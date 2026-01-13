@@ -28,7 +28,7 @@ const upload = multer({ storage: storage });
 // Routes
 router.post("/api/user", validateCreateUser, createNewUser);
 router.post("/api/login", validateLogin);
-router.post("/api/upload", authenticateUser, upload.array("files"), validateFiles, uploadAudio);
+router.post("/api/upload", authenticateUser, upload.array("files"), validateFiles, uploadAudio); //Dani-Note to make an upload connection to the FE, also user login require
 router.post("/api/download", authenticateUser, downloadAudio);
 router.post("/api/update", validateMetadata, updateMetadata);
 
