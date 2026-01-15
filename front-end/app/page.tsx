@@ -12,8 +12,11 @@ type AudioFile = {
   year: string;
 }
 
+let tempStore;
+
 export default function HomePage() {
   const [collection, setCollection] = useState<AudioFile[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
 
   const handleFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>
@@ -21,6 +24,7 @@ export default function HomePage() {
     if (!e.target.files) return;
 
     const files = Array.from(e.target.files);
+    setFiles(files);
 
     const data = await Promise.all(
       files.map(async (file, index) => {
@@ -51,6 +55,18 @@ export default function HomePage() {
     console.log(data);
     console.log(files);
     setCollection(data);
+  };
+
+  const handleUpload = async () => {
+    if (files.length === 0) return;
+
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file));
+
+    await fetch("http://localhost:3001/upload", {
+      method: "POST",
+      body: formData,
+    });
   };
 
 
