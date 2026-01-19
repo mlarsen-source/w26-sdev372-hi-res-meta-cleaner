@@ -10,7 +10,14 @@ import { errorHandler } from "./middleware/errorHandler.js";
 const app = express();
 
 // Enable Cross-Origin Resource Sharing (CORS) for all routes
-app.use(cors());
+// app.use(cors()); // Break credentialed request, default to 'Access-Control-Allow-Origin: *'
+
+app.use(
+  cors({
+    origin: 'http://localhost:3000', // frontend origin
+    credentials: true,               // allow cookies
+  })
+);
 
 // Parse incoming JSON request bodies
 app.use(express.json());
