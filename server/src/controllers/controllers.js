@@ -1,6 +1,7 @@
 import { audioFile } from "../models/audioFile.js";
 import { metadata } from "../models/metadata.js";
 import { user } from "../models/user.js";
+import { Op } from "sequelize";
 import { hashPassword } from "../utils/hashPassword.js";
 import { upsertMetadata } from "../repos/repos.js";
 import archiver from "archiver";
@@ -113,6 +114,8 @@ export async function getMetadata(req, res, next) {
             comment: file.metadatum.comment,
             track: file.metadatum.track,
             genre: file.metadatum.genre,
+            type: file.metadatum.type,
+            size: file.metadatum.size,
             album_artist: file.metadatum.album_artist,
             composer: file.metadatum.composer,
             discnumber: file.metadatum.discnumber,
@@ -130,10 +133,20 @@ export async function getMetadata(req, res, next) {
 export async function downloadAudio(req, res, next) {
   try {
     const userId = req.user.user_id;
+    const { filenames } = req.body ?? {};
+
+    if (!Array.isArray(filenames) || filenames.length === 0) {
+      return res.status(400).json({
+        error: "filenames is required and must be a non-empty array",
+      });
+    }
 
     // Get files with metadata
     const userFiles = await audioFile.findAll({
-      where: { user_id: userId },
+      where: {
+        user_id: userId,
+        original_filename: { [Op.in]: filenames },
+      },
       include: { model: metadata, required: false },
     });
 

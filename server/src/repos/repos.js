@@ -18,6 +18,8 @@ export async function upsertMetadata(payload) {
         comment: track.comment,
         track: track.track,
         genre: track.genre,
+        type: track.type,
+        size: track.size,
         album_artist: track.album_artist,
         composer: track.composer,
         discnumber: track.discnumber,
