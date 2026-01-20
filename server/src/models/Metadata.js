@@ -51,6 +51,16 @@ export const metadata = sequelize.define(
       allowNull: true,
     },
 
+    type: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+
+    size: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+
     album_artist: {
       type: DataTypes.STRING(255),
       allowNull: true,
