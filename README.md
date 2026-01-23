@@ -20,15 +20,19 @@ export their cleaned collection with updated tags.
 - Anyone frustrated by the tedious process of manually fixing metadata tags
 ---
 ## 2. Feature Breakdown
-### MVP Features (Sprint 1-2)
+### MVP Features (Sprint 1)
 **Core functionality that establishes the basic workflow:**
-- User Authentication: Simple login system to keep collections private per user
-- File Upload System: Users can upload audio files individually or in batches
+- File Upload System: Users can upload audio files individually or in batches 
 - Metadata Extraction: Automatically read and display existing metadata tags
 - Collection View: Display all uploaded files in a sortable table showing metadata
 fields
 - Individual Field Edit: Click any field to edit metadata for a single track
 - Export Functionality: Export modified audio files with updated tags
+### MVP Feature Details (Sprint 2)
+- User Authentication: Simple login system to keep collections private per user
+- Make Collection View table sortable
+- Dupo Checking
+- Nav Bar with links to Upload, View Collection, Export
 ### Extended Features (Sprint 3+)
 - Batch Edit: Select multiple tracks and edit shared fields
 - Automated Cleanup: Trim whitespace, standardize capitalization, remove special
