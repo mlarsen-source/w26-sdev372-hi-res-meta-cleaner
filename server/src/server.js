@@ -19,6 +19,7 @@ app.use(
 
 // Parse incoming JSON request bodies
 app.use(express.json());
+console.log("CORS_ORIGIN =", process.env.CORS_ORIGIN);
 
 // Mount the API router at the root path
 app.use("/", apiRouter);
