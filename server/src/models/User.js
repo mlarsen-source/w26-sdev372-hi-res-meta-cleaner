@@ -42,3 +42,6 @@ export const user = sequelize.define(
     timestamps: false,
   }
 );
+
+// pizza
+
