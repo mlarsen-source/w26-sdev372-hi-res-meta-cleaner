@@ -32,8 +32,10 @@ export async function handleFileChange(
     size: file.size,
   };
 
+  const baseUrl = process.env.NEXT_PUBLIC_LOCAL_SYSVAR || 'http://localhost:3001';
+
   try {
-    await fetch('http://localhost:3001/api/update', {
+    await fetch(`${baseUrl}/api/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(metadata),
