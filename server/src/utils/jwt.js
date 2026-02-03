@@ -1,18 +1,13 @@
 import jwt from "jsonwebtoken";
 
-const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
-const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
-const ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN || "1h";
-const REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || "7d";
-
 /**
  * Generates an access token for the given user ID.
  * @param {number} userId - The user's ID
  * @returns {string} JWT access token
  */
 export function generateAccessToken(userId) {
-  return jwt.sign({ user_id: userId }, ACCESS_SECRET, {
-    expiresIn: ACCESS_EXPIRES_IN,
+  return jwt.sign({ user_id: userId }, process.env.JWT_ACCESS_SECRET, {
+    expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || "1h",
   });
 }
 
@@ -22,8 +17,8 @@ export function generateAccessToken(userId) {
  * @returns {string} JWT refresh token
  */
 export function generateRefreshToken(userId) {
-  return jwt.sign({ user_id: userId }, REFRESH_SECRET, {
-    expiresIn: REFRESH_EXPIRES_IN,
+  return jwt.sign({ user_id: userId }, process.env.JWT_REFRESH_SECRET, {
+    expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
   });
 }
 
@@ -34,7 +29,7 @@ export function generateRefreshToken(userId) {
  * @throws {Error} If token is invalid or expired
  */
 export function verifyAccessToken(token) {
-  return jwt.verify(token, ACCESS_SECRET);
+  return jwt.verify(token, process.env.JWT_ACCESS_SECRET);
 }
 
 /**
@@ -44,7 +39,7 @@ export function verifyAccessToken(token) {
  * @throws {Error} If token is invalid or expired
  */
 export function verifyRefreshToken(token) {
-  return jwt.verify(token, REFRESH_SECRET);
+  return jwt.verify(token, process.env.JWT_REFRESH_SECRET);
 }
 
 /**
