@@ -1,8 +1,14 @@
 // db/sequelize.js
 import dotenv from "dotenv";
 import { Sequelize } from "sequelize";
+import path from "path";
+import { fileURLToPath } from "url";
 
-dotenv.config();
+// Load .env from the server root explicitly so PM2/startup services
+// that change the working directory still pick up the expected vars.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const envPath = path.resolve(__dirname, "../../.env");
+dotenv.config({ path: envPath });
 
 const { DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_DATABASE } = process.env;
 
