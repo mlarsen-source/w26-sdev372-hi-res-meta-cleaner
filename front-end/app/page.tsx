@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import UploadSection from '../app/components/UploadSection';
-import CollectionTable from '../app/components/CollectionTable';
-import Loading from '../app/components/Loading';
+import UploadSection from './components/UploadSection';
+import CollectionTable from './components/CollectionTable';
+import Loading from './components/Loading';
 import { extractMetadata } from './components/useAudioMetadata';
-import { AudioFile } from '../app/types/audio';
+import { AudioFile } from './types/audio';
 
 export default function HomePage() {
   const [files, setFiles] = useState<File[]>([]);
@@ -18,6 +18,7 @@ export default function HomePage() {
   const [isDownloading, setIsDownloading] = useState(false);
 
   const LocalSYSVAR = process.env.NEXT_PUBLIC_LOCAL_SYSVAR || 'http://localhost:3001';
+  console.log('Using backend URL:', LocalSYSVAR);
 
   const fetchCollection = async () => {
     setLoadingMeta(true);
