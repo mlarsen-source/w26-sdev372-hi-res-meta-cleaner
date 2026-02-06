@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { AudioFile } from '../types/audio';
-import { FileRow } from './FileRow';
-import { handleFileChange } from './fileUtils';
-import './CollectionTable.css';
+import { useState } from "react";
+import { AudioFile } from "../types/audio";
+import { FileRow } from "./FileRow";
+import { handleFileChange } from "./fileUtils";
+import "./CollectionTable.css";
 
 interface EnableDownload {
   collection: AudioFile[];
@@ -13,7 +13,7 @@ interface EnableDownload {
   selectedFiles?: Set<string>;
   onSelectionChange?: (filenames: Set<string>) => void;
   readOnly?: boolean;
-};
+}
 
 export default function CollectionTable({
   collection,
@@ -27,9 +27,9 @@ export default function CollectionTable({
 
   if (files.length === 0) return null;
 
-  const headers = ['File', 'Artist', 'Title', 'Album', 'Year', 'Type', 'Size'];
-  if (showDownload) headers.push('Download');
-  if (onRemove) headers.push('');
+  const headers = ["File", "Artist", "Title", "Album", "Year", "Type", "Size"];
+  if (showDownload) headers.push("Download");
+  if (onRemove) headers.push("");
 
   const handleCheckboxChange = (filename: string, checked: boolean) => {
     if (!onSelectionChange) return;
@@ -45,15 +45,15 @@ export default function CollectionTable({
   const handleSelectAll = (checked: boolean) => {
     if (!onSelectionChange) return;
     if (checked) {
-      onSelectionChange(new Set(files.map(f => f.filename)));
+      onSelectionChange(new Set(files.map((f) => f.filename)));
     } else {
       onSelectionChange(new Set());
     }
   };
 
   const getNameAndExt = (filename: string) => {
-    const lastDot = filename.lastIndexOf('.');
-    if (lastDot === -1) return { name: filename, ext: '' };
+    const lastDot = filename.lastIndexOf(".");
+    if (lastDot === -1) return { name: filename, ext: "" };
     return {
       name: filename.slice(0, lastDot),
       ext: filename.slice(lastDot),
@@ -64,7 +64,7 @@ export default function CollectionTable({
     const file = files[index];
     const { ext } = getNameAndExt(file.filename);
     const newFilename = newName + ext;
-    handleChange(index, 'filename', newFilename);
+    handleChange(index, "filename", newFilename);
   };
 
   const handleRemoveFile = (index: number) => {
@@ -85,10 +85,10 @@ export default function CollectionTable({
       <thead>
         <tr>
           <th>
-              <input
-                type="checkbox"
-                onChange={(e) => handleSelectAll(e.target.checked)}
-              />
+            <input
+              type="checkbox"
+              onChange={(e) => handleSelectAll(e.target.checked)}
+            />
           </th>
           {headers.map((header, index) => (
             <th key={index}>{header}</th>
@@ -98,6 +98,7 @@ export default function CollectionTable({
       <tbody>
         {files.map((file, index) => (
           <FileRow
+            key={file.filename || index}
             file={file}
             index={index}
             selectedFiles={selectedFiles}
