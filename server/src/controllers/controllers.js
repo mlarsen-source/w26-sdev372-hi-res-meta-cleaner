@@ -46,21 +46,35 @@ export async function createAudioRecords(req, res, next) {
     const userId = req.user.user_id;
     const files = req.files;
 
-    const uploaded = await Promise.all(
-      files.map(async (file) => {
-        const audio = await audioFile.create({
-          user_id: userId,
-          filename: file.filename,
-          original_filename: file.originalname,
-        });
+    const uploaded = [];
 
-        return {
-          file_id: audio.file_id,
-          filename: audio.filename,
-          original_filename: audio.original_filename,
-        };
-      })
-    );
+    for (const file of files) {
+      // 🔍 Check if file already exists for this user
+      const existing = await audioFile.findOne({
+        where: {
+          user_id: userId,
+          original_filename: file.originalname,
+        },
+      });
+
+      if (existing) {
+        return res.status(409).json({
+          error: `File "${file.originalname}" already exists.`,
+        });
+      }
+
+      const audio = await audioFile.create({
+        user_id: userId,
+        filename: file.filename,
+        original_filename: file.originalname,
+      });
+
+      uploaded.push({
+        file_id: audio.file_id,
+        filename: audio.filename,
+        original_filename: audio.original_filename,
+      });
+    }
 
     req.uploadedFiles = uploaded;
     next();
