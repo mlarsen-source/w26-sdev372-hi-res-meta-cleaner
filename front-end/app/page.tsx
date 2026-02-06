@@ -49,9 +49,13 @@ export default function HomePage() {
   };
 
   const handleFilesSelected = async (selectedFiles: File[]) => {
+
     setFiles(selectedFiles);
+
     const metadata = await extractMetadata(selectedFiles);
+
     setCollection(metadata);
+
   };
 
   const handleUpload = async () => {
@@ -69,7 +73,15 @@ export default function HomePage() {
         credentials: 'include',
       });
 
-      if (!res.ok) throw new Error('Upload failed');
+      if (!res.ok) {
+        if (res.status === 409) {
+          alert('This file has already been uploaded.');
+          return;
+        }
+
+        throw new Error('Upload failed');
+      }
+
 
       setHasSubmitted(true);
       await fetchCollection();
@@ -122,7 +134,7 @@ export default function HomePage() {
       <NavBar
         uploading={setIsUploading}
         submited={setHasSubmitted}
-        />
+      />
       {isUploading ? (
         <Loading message="Uploading files" />
       ) : !hasSubmitted ? (
