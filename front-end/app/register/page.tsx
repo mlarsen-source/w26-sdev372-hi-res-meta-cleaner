@@ -13,8 +13,8 @@ export default function RegisterPage() {
   const router = useRouter();
   const LocalSYSVAR = process.env.NEXT_PUBLIC_LOCAL_SYSVAR || 'http://localhost:3001';
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setErrors(null);
     if (password !== confirmPassword) {
       setErrors("Passwords do not match");
@@ -48,23 +48,23 @@ export default function RegisterPage() {
       <form onSubmit={handleSubmit} className="auth-form">
         <label>
           First Name
-          <input value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+          <input value={firstName} onChange={(event) => setFirstName(event.target.value)} required />
         </label>
         <label>
           Last Name
-          <input value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+          <input value={lastName} onChange={(event) => setLastName(event.target.value)} required />
         </label>
         <label>
           Email
-          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
+          <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required />
         </label>
         <label>
           Password
-          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
+          <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" required />
         </label>
         <label>
           Confirm Password
-          <input value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type="password" required />
+          <input value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} type="password" required />
         </label>
         {errors && <div className="error">{errors}</div>}
         <button type="submit" className="submit-button">Register</button>

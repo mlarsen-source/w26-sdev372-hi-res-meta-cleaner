@@ -12,8 +12,8 @@ export default function LoginPage() {
   const { login } = useAuth();
   const LocalSYSVAR = process.env.NEXT_PUBLIC_LOCAL_SYSVAR || 'http://localhost:3001';
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setError(null);
     try {
       const res = await fetch(`${LocalSYSVAR}/api/login`, {
@@ -56,11 +56,11 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} className="auth-form">
         <label>
           Email
-          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
+          <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required />
         </label>
         <label>
           Password
-          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
+          <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" required />
         </label>
         {error && <div className="error">{error}</div>}
         <button type="submit" className="submit-button">Login</button>

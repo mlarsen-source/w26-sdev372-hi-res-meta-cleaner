@@ -37,7 +37,20 @@ button {
   margin: 0;
 }
 
-.login-button {
+.header-auth {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.user-greeting {
+  color: white;
+  font-weight: 500;
+}
+
+.login-button,
+.logout-button,
+.register-button {
   background-color: #2563eb;
   color: white;
   padding: 0.25rem 0.75rem;
@@ -45,7 +58,9 @@ button {
   border-radius: 4px;
 }
 
-.login-button:hover {
+.login-button:hover,
+.logout-button:hover,
+.register-button:hover {
   background-color: #1d4ed8;
 }
 
@@ -82,4 +97,14 @@ button {
 
 .submit-button:hover {
   background-color: #1d4ed8;
+}
+
+.submit-button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.submit-button:disabled:hover {
+  background-color: #9ca3af;
 }

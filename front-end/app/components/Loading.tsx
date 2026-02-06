@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import './Loading.css';
+import "./Loading.module.css";
 
 type Props = {
   message?: string;
 };
 
-export default function Loading({ message = 'Loading' }: Props) {
+export default function Loading({ message = "Loading" }: Props) {
   return (
     <div className="loading">
       <span className="loading-text">{message}</span>

@@ -12,45 +12,45 @@ type User = {
 
 type AuthContextType = {
   user: User | null;
-  setUser: (u: User | null) => void;
-  login: (u: User) => void;
+  setUser: (user: User | null) => void;
+  login: (user: User) => void;
   logout: () => Promise<void>;
   fetchWithAuth: (input: RequestInfo, init?: RequestInit) => Promise<Response>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const LOCAL_KEY = "hires_meta_user";
+const LOCAL_STORAGE_KEY = "hires_meta_user";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUserState] = useState<User | null>(null);
-  const router = useRouter();
-  const LocalSYSVAR = process.env.NEXT_PUBLIC_LOCAL_SYSVAR || 'http://localhost:3001';
-
-  useEffect(() => {
+  const [user, setUserState] = useState<User | null>(() => {
+    if (typeof window === 'undefined') return null;
     try {
-      const raw = localStorage.getItem(LOCAL_KEY);
-      if (raw) setUserState(JSON.parse(raw));
-    } catch (e) {
-      // ignore
+      const storedUserData = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (storedUserData) return JSON.parse(storedUserData);
+    } catch (error) {
+      console.error('Failed to parse stored user data:', error);
     }
-  }, []);
+    return null;
+  });
+  const router = useRouter();
+  const apiBaseUrl = process.env.NEXT_PUBLIC_LOCAL_SYSVAR || 'http://localhost:3001';
 
-  const setUser = (u: User | null) => {
-    setUserState(u);
-    if (u) localStorage.setItem(LOCAL_KEY, JSON.stringify(u));
-    else localStorage.removeItem(LOCAL_KEY);
+  const setUser = (updatedUser: User | null) => {
+    setUserState(updatedUser);
+    if (updatedUser) localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedUser));
+    else localStorage.removeItem(LOCAL_STORAGE_KEY);
   };
 
-  const login = (u: User) => {
-    setUser(u);
+  const login = (newUser: User) => {
+    setUser(newUser);
   };
 
   const logout = async () => {
     try {
-      await fetch(`${LocalSYSVAR}/api/logout`, { method: "POST", credentials: "include" });
-    } catch (e) {
-      // ignore
+      await fetch(`${apiBaseUrl}/api/logout`, { method: "POST", credentials: "include" });
+    } catch (error) {
+      console.error('Logout request failed:', error);
     }
     setUser(null);
     router.push("/login");
@@ -58,41 +58,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // fetch wrapper that tries refresh on token expiry
   const fetchWithAuth = async (input: RequestInfo, init: RequestInit = {}) => {
-    const baseInit: RequestInit = { credentials: "include", ...init };
+    const requestInit: RequestInit = { credentials: "include", ...init };
 
-    let target = input;
+    let requestUrl = input;
     if (typeof input === 'string' && input.startsWith('/api')) {
-      target = `${LocalSYSVAR}${input}`;
+      requestUrl = `${apiBaseUrl}${input}`;
     }
 
-    let res = await fetch(target, baseInit);
+    let response = await fetch(requestUrl, requestInit);
 
-    if (res.status === 401) {
-      // try to parse message
-      let json: any = null;
+    if (response.status === 401) {
+      let responseData: unknown = null;
       try {
-        json = await res.clone().json();
-      } catch (e) {
-        // ignore
+        responseData = await response.clone().json();
+      } catch (error) {
+        console.error('Failed to parse 401 response:', error);
       }
 
-      const msg = json?.message || "";
-      if (typeof msg === "string" && msg.toLowerCase().includes("token expired")) {
-        // attempt refresh
-        const refreshRes = await fetch(`${LocalSYSVAR}/api/refresh`, { method: "POST", credentials: "include" });
-        if (refreshRes.ok) {
-          // retry original request once
-          res = await fetch(input, baseInit);
-          return res;
+      const errorMessage = (responseData as { message?: string })?.message || "";
+      if (typeof errorMessage === "string" && errorMessage.toLowerCase().includes("token expired")) {
+        const refreshResponse = await fetch(`${apiBaseUrl}/api/refresh`, { method: "POST", credentials: "include" });
+        if (refreshResponse.ok) {
+          response = await fetch(input, requestInit);
+          return response;
         }
-        // refresh failed
         setUser(null);
         router.push("/login");
-        return res;
+        return response;
       }
     }
 
-    return res;
+    return response;
   };
 
   return (
@@ -103,17 +99,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
+  return context;
 }
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const router = useRouter();
+
   useEffect(() => {
     if (!user) router.push("/login");
   }, [user, router]);
+
   if (!user) return null;
   return <>{children}</>;
 }

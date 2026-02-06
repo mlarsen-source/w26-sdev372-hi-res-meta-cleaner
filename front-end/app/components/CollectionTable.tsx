@@ -4,14 +4,14 @@ import { useState } from "react";
 import { AudioFile } from "../types/audio";
 import { FileRow } from "./FileRow";
 import { handleFileChange } from "./fileUtils";
-import "./CollectionTable.css";
+import styles from "./CollectionTable.module.css";
 
-interface EnableDownload {
+interface CollectionTableProps {
   collection: AudioFile[];
   onRemove?: (index: number) => void;
   showDownload?: boolean;
-  selectedFiles?: Set<string>;
-  onSelectionChange?: (filenames: Set<string>) => void;
+  selectedFiles?: Set<number>;
+  onSelectionChange?: (fileIds: Set<number>) => void;
   readOnly?: boolean;
 }
 
@@ -22,22 +22,23 @@ export default function CollectionTable({
   selectedFiles = new Set(),
   onSelectionChange,
   readOnly = false,
-}: EnableDownload) {
+}: CollectionTableProps) {
   const [files, setFiles] = useState<AudioFile[]>(collection);
 
   if (files.length === 0) return null;
 
+  const showSelectionCheckbox = !!onSelectionChange && !showDownload;
+
   const headers = ["File", "Artist", "Title", "Album", "Year", "Type", "Size"];
-  if (showDownload) headers.push("Download");
   if (onRemove) headers.push("");
 
-  const handleCheckboxChange = (filename: string, checked: boolean) => {
+  const handleCheckboxChange = (fileId: number, checked: boolean) => {
     if (!onSelectionChange) return;
     const newSelection = new Set(selectedFiles);
     if (checked) {
-      newSelection.add(filename);
+      newSelection.add(fileId);
     } else {
-      newSelection.delete(filename);
+      newSelection.delete(fileId);
     }
     onSelectionChange(newSelection);
   };
@@ -45,30 +46,30 @@ export default function CollectionTable({
   const handleSelectAll = (checked: boolean) => {
     if (!onSelectionChange) return;
     if (checked) {
-      onSelectionChange(new Set(files.map((f) => f.filename)));
+      onSelectionChange(new Set(files.map((file) => file.id)));
     } else {
       onSelectionChange(new Set());
     }
   };
 
-  const getNameAndExt = (filename: string) => {
-    const lastDot = filename.lastIndexOf(".");
-    if (lastDot === -1) return { name: filename, ext: "" };
+  const splitFilenameAndExtension = (filename: string) => {
+    const lastDotIndex = filename.lastIndexOf(".");
+    if (lastDotIndex === -1) return { fileNameWithoutExt: filename, fileExtension: "" };
     return {
-      name: filename.slice(0, lastDot),
-      ext: filename.slice(lastDot),
+      fileNameWithoutExt: filename.slice(0, lastDotIndex),
+      fileExtension: filename.slice(lastDotIndex),
     };
   };
 
   const handleFilenameChange = (index: number, newName: string) => {
     const file = files[index];
-    const { ext } = getNameAndExt(file.filename);
-    const newFilename = newName + ext;
+    const { fileExtension } = splitFilenameAndExtension(file.filename);
+    const newFilename = newName + fileExtension;
     handleChange(index, "filename", newFilename);
   };
 
   const handleRemoveFile = (index: number) => {
-    const updatedFiles = files.filter((_, i) => i !== index);
+    const updatedFiles = files.filter((_, itemIndex) => itemIndex !== index);
     setFiles(updatedFiles);
   };
 
@@ -81,24 +82,41 @@ export default function CollectionTable({
   };
 
   return (
-    <table className="collection-table">
+    <table className={styles.collectionTable}>
       <thead>
         <tr>
-          <th>
-            <input
-              type="checkbox"
-              onChange={(e) => handleSelectAll(e.target.checked)}
-            />
-          </th>
-          {headers.map((header, index) => (
-            <th key={index}>{header}</th>
+          {showSelectionCheckbox && (
+            <th>
+              <input
+                type="checkbox"
+                onChange={(event) => handleSelectAll(event.target.checked)}
+              />
+            </th>
+          )}
+          {headers.map((header, headerIndex) => (
+            <th
+              key={headerIndex}
+              className={header === 'Year' ? styles.yearHeader : undefined}
+            >
+              {header}
+            </th>
           ))}
+          {showDownload && (
+            <th className={styles.selectAllHeader}>
+              <input
+                type="checkbox"
+                onChange={(event) => handleSelectAll(event.target.checked)}
+                className={styles.selectAllCheckbox}
+              />
+              Select All
+            </th>
+          )}
         </tr>
       </thead>
       <tbody>
         {files.map((file, index) => (
           <FileRow
-            key={file.filename || index}
+            key={file.id ?? `${file.filename}-${index}`}
             file={file}
             index={index}
             selectedFiles={selectedFiles}
@@ -107,6 +125,8 @@ export default function CollectionTable({
             onFieldChange={handleChange}
             onDownload={showDownload}
             onRemove={onRemove ? handleRemoveFile : undefined}
+            readOnly={readOnly}
+            showSelectionCheckbox={showSelectionCheckbox}
           />
         ))}
       </tbody>
