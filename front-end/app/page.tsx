@@ -6,6 +6,7 @@ import CollectionTable from '../app/components/CollectionTable';
 import Loading from '../app/components/Loading';
 import { extractMetadata } from './components/useAudioMetadata';
 import { AudioFile } from '../app/types/audio';
+import NavBar from './components/NavBar';
 
 export default function HomePage() {
   const [files, setFiles] = useState<File[]>([]);
@@ -16,6 +17,7 @@ export default function HomePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedForDownload, setSelectedForDownload] = useState<Set<string>>(new Set());
   const [isDownloading, setIsDownloading] = useState(false);
+
 
   const fetchCollection = async () => {
     setLoadingMeta(true);
@@ -47,9 +49,13 @@ export default function HomePage() {
   };
 
   const handleFilesSelected = async (selectedFiles: File[]) => {
+
     setFiles(selectedFiles);
+
     const metadata = await extractMetadata(selectedFiles);
+
     setCollection(metadata);
+
   };
 
   const handleUpload = async () => {
@@ -67,7 +73,15 @@ export default function HomePage() {
         credentials: 'include',
       });
 
-      if (!res.ok) throw new Error('Upload failed');
+      if (!res.ok) {
+        if (res.status === 409) {
+          alert('This file has already been uploaded.');
+          return;
+        }
+
+        throw new Error('Upload failed');
+      }
+
 
       setHasSubmitted(true);
       await fetchCollection();
@@ -117,6 +131,10 @@ export default function HomePage() {
 
   return (
     <div className="page-content">
+      <NavBar
+        setIsUploading={setIsUploading}
+        setHasSubmitted={setHasSubmitted}
+      />
       {isUploading ? (
         <Loading message="Uploading files" />
       ) : !hasSubmitted ? (

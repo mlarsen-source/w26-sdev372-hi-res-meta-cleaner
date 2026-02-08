@@ -83,10 +83,10 @@ export default function CollectionTable({
       <thead>
         <tr>
           <th>
-              <input
-                type="checkbox"
-                onChange={(e) => handleSelectAll(e.target.checked)}
-              />
+            <input
+              type="checkbox"
+              onChange={(e) => handleSelectAll(e.target.checked)}
+            />
           </th>
           {headers.map((header, index) => (
             <th key={index}>{header}</th>
@@ -96,6 +96,7 @@ export default function CollectionTable({
       <tbody>
         {files.map((file, index) => (
           <FileRow
+            key={index}
             file={file}
             index={index}
             selectedFiles={selectedFiles}
