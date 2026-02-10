@@ -5,7 +5,7 @@ import cookieParser from "cookie-parser";
 import sequelize, { connectDB } from "./db/sequelize.js";
 import "./models/index.js";
 import apiRouter from "./routes/routes.js";
-import { seedDevUser } from "./db/devSeed.js"; // development  only
+import { seedDevUser } from "./db/devSeed.js"; // development only
 import { errorHandler } from "./middleware/errorHandler.js";
 
 // Initialize Express application

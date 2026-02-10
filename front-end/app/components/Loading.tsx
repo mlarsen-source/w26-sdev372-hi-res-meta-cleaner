@@ -1,6 +1,6 @@
 "use client";
 
-import "./Loading.module.css";
+import styles from "./Loading.module.css";
 
 type Props = {
   message?: string;
@@ -8,9 +8,9 @@ type Props = {
 
 export default function Loading({ message = "Loading" }: Props) {
   return (
-    <div className="loading">
-      <span className="loading-text">{message}</span>
-      <div className="loading-dots">
+    <div className={styles.loading}>
+      <span className={styles["loading-text"]}>{message}</span>
+      <div className={styles["loading-dots"]}>
         <span></span>
         <span></span>
         <span></span>

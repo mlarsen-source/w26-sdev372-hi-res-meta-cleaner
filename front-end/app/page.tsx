@@ -9,6 +9,7 @@ import Loading from './components/Loading';
 import { extractMetadata } from './components/useAudioMetadata';
 import { AudioFile } from './types/audio';
 import styles from './components/HomePage.module.css';
+import NavBar from './components/NavBar';
 
 export default function HomePage() {
   const { user, setUser } = useAuth();
@@ -64,7 +65,9 @@ export default function HomePage() {
   };
 
   const handleFilesSelected = async (selectedFiles: File[]) => {
+
     setFiles(selectedFiles);
+
     const metadata = await extractMetadata(selectedFiles);
     setLocalCollection(metadata);
   };
@@ -92,6 +95,11 @@ export default function HomePage() {
           setUser(null);
           alert('Your session has expired. Please log in again.');
           router.push('/login');
+          return;
+        }
+
+        if (response.status === 409) {
+          alert('This file has already been uploaded.');
           return;
         }
 
@@ -171,6 +179,10 @@ export default function HomePage() {
 
   return (
     <div className="page-content">
+      <NavBar
+        setIsUploading={setIsUploading}
+        setHasSubmitted={setHasSubmitted}
+      />
       {isUploading ? (
         <Loading message="Uploading files" />
       ) : !hasSubmitted ? (
