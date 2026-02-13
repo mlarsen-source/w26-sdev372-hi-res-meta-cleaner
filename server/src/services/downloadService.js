@@ -1,5 +1,5 @@
-import { audioFile } from "../models/audioFile.js";
-import { metadata } from "../models/metadata.js";
+import { audioFile } from "../models/AudioFile.js";
+import { metadata } from "../models/Metadata.js";
 import { Op } from "sequelize";
 import { writeMetadataToFile } from "../utils/writeMetadata.js";
 import archiver from "archiver";

@@ -1,0 +1,92 @@
+# ── Hi-Res Meta Cleaner — Docker Compose ─────────────────────────────
+# Start all services:  docker compose up --build
+# Stop all services:   docker compose down
+# Stop and wipe data:  docker compose down -v
+#
+# SETUP: All ${VAR} values below are read from a .env file in this directory.
+#        Create a .env file with the required variables before running.
+# ─────────────────────────────────────────────────────────────────────
+
+services:
+  # ── MySQL Database ─────────────────────────────────────────────────
+  # Credentials and database name are set in .env
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      # Named volume persists database data across container restarts
+      - db_data:/var/lib/mysql
+    ports:
+      # Mapped to 3307 externally to avoid conflicts with a local MySQL install
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # ── Express API Server ─────────────────────────────────────────────
+  # Port, JWT secrets, and DB connection details are set in .env
+  server:
+    build: ./server
+    restart: unless-stopped
+    depends_on:
+      # Wait for the database to accept connections before starting
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${SERVER_PORT}
+      # "db" refers to the database service name above (Docker internal DNS)
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USERNAME: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      DB_DATABASE: ${MYSQL_DATABASE}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    volumes:
+      # Named volume persists uploaded files across container restarts
+      - server_uploads:/app/uploads
+    healthcheck:
+      # Any response (even 404) means the server is alive and accepting connections
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:${SERVER_PORT}').then(()=>process.exit(0)).catch(()=>process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ── Next.js Frontend ───────────────────────────────────────────────
+  # API URL and port are set in .env
+  frontend:
+    build:
+      context: ./front-end
+      args:
+        # Passed at build time — Next.js bakes NEXT_PUBLIC_* vars into the JS bundle
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    restart: unless-stopped
+    depends_on:
+      # Wait for the API server to be healthy before starting
+      server:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      # HOSTNAME and PORT are read by the Next.js standalone server
+      HOSTNAME: 0.0.0.0
+      PORT: ${FRONTEND_PORT}
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+
+volumes:
+  db_data:
+  server_uploads:
