@@ -1,6 +1,6 @@
-import { audioFile } from "../models/audioFile.js";
-import { metadata } from "../models/metadata.js";
-import { user } from "../models/user.js";
+import { audioFile } from "../models/AudioFile.js";
+import { metadata } from "../models/Metadata.js";
+import { user } from "../models/User.js";
 import { hashPassword } from "../utils/hashPassword.js";
 import { upsertMetadata } from "../repos/repos.js";
 import { mapAudioFileResponse, mapUploadedFileResponse } from "../utils/responseMappers.js";

@@ -1,4 +1,4 @@
-import { metadata } from "../models/metadata.js";
+import { metadata } from "../models/Metadata.js";
 import { METADATA_FIELDS } from "../utils/metadataFields.js";
 import { removeEmptyFields } from "../utils/objectHelpers.js";
 

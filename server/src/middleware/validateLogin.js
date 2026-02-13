@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { user } from "../models/user.js";
+import { user } from "../models/User.js";
 import {
   generateAccessToken,
   generateRefreshToken,
