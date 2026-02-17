@@ -5,7 +5,11 @@ import Link from "next/link";
 import { useAuth } from "./AuthProvider";
 import styles from "./HeaderAuth.module.css";
 
-export default function HeaderAuth() {
+interface HeaderAuthProps {
+  activeAuth?: "login" | "register";
+}
+
+export default function HeaderAuth({ activeAuth }: HeaderAuthProps) {
   const { user, logout } = useAuth();
   const [hasMounted, setHasMounted] = useState(false);
 
@@ -30,10 +34,10 @@ export default function HeaderAuth() {
       ) : (
         <>
           <Link href="/login">
-            <button type="button" className="login-button">Login</button>
+            <button type="button" className={`login-button ${activeAuth === "login" ? "active" : ""}`}>Login</button>
           </Link>
           <Link href="/register">
-            <button type="button" className="register-button">Register</button>
+            <button type="button" className={`register-button ${activeAuth === "register" ? "active" : ""}`}>Register</button>
           </Link>
         </>
       )}

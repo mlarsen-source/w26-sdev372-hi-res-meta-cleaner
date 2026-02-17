@@ -1,6 +1,6 @@
 "use client";
 
-import "./UploadSection.module.css";
+import styles from "./UploadSection.module.css";
 
 const ALLOWED_AUDIO_TYPES = [
   "audio/mpeg",
@@ -58,8 +58,8 @@ export default function UploadSection({ onFilesSelected }: UploadSectionProps) {
   };
 
   return (
-    <section className="upload-section">
-      <h2>Upload Audio Files</h2>
+    <section className={styles.uploadSection}>
+      <h2>Please select the audio files that you would like to edit</h2>
 
       <label
         htmlFor="audio-upload"
@@ -72,7 +72,7 @@ export default function UploadSection({ onFilesSelected }: UploadSectionProps) {
         multiple
         accept="audio/*"
         onChange={handleFileChange}
-        className="upload-input"
+        className={styles.uploadInput}
       />
     </section>
   );

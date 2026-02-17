@@ -8,7 +8,7 @@ import CollectionTable from './components/CollectionTable';
 import Loading from './components/Loading';
 import { extractMetadata } from './components/useAudioMetadata';
 import { AudioFile } from './types/audio';
-import styles from './components/HomePage.module.css';
+import styles from './page.module.css';
 import NavBar from './components/NavBar';
 
 export default function HomePage() {
@@ -161,70 +161,88 @@ export default function HomePage() {
 
   if (!user) {
     return (
-      <div className={`page-content ${styles.loginPrompt}`}>
-        <h2>Welcome to Hi-Res Meta Cleaner</h2>
-        <p>Please log in to upload and manage your audio files.</p>
-        <button
-          type="button"
-          className={`submit-button ${styles.loginButton}`}
-          onClick={() => router.push('/login')}
-        >
-          Go to Login
-        </button>
-      </div>
+      <>
+        <NavBar
+          setIsUploading={setIsUploading}
+          setHasSubmitted={setHasSubmitted}
+          hasSubmitted={hasSubmitted}
+        />
+        <header className="page-header">
+          <h1>Hi-Res Meta Cleaner</h1>
+        </header>
+        <div className={`page-content ${styles.loginPrompt}`}>
+          <h2>Welcome to Hi-Res Meta Cleaner</h2>
+          <p>Please log in to upload and manage your audio files.</p>
+          <button
+            type="button"
+            className={`submit-button ${styles.loginButton}`}
+            onClick={() => router.push('/login')}
+          >
+            Go to Login
+          </button>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="page-content">
+    <>
       <NavBar
         setIsUploading={setIsUploading}
         setHasSubmitted={setHasSubmitted}
+        hasSubmitted={hasSubmitted}
+        showActive
+        showNavActions
       />
-      {isUploading ? (
-        <Loading message="Uploading files" />
-      ) : !hasSubmitted ? (
-        <>
-          <UploadSection onFilesSelected={handleFilesSelected} />
-          {localCollection.length > 0 && (
-            <div className="selected-files-section">
-              <h2 className="section-heading">Selected Files</h2>
-              <CollectionTable collection={localCollection} onRemove={handleRemoveFile} readOnly />
-              <button
-                type="button"
-                className="submit-button"
-                onClick={handleUpload}
-              >
-                Submit
-              </button>
-            </div>
-          )}
-        </>
-      ) : (
-        <div>
-          <h2 className="section-heading">Audio Collection Editor</h2>
-          {isLoadingCollection ? (
-            <Loading message="Loading collection" />
-          ) : (
-            <>
-              <CollectionTable
-                collection={uploadedCollection}
-                showDownload
-                selectedFiles={selectedForDownload}
-                onSelectionChange={setSelectedForDownload}
-              />
-              <button
-                type="button"
-                className={`submit-button ${styles.downloadButton}`}
-                onClick={handleDownload}
-                disabled={selectedForDownload.size === 0 || isDownloading}
-              >
-                {isDownloading ? 'Downloading...' : `Download Selected (${selectedForDownload.size})`}
-              </button>
-            </>
-          )}
-        </div>
-      )}
-    </div>
+      <header className="page-header">
+        <h1>Hi-Res Meta Cleaner</h1>
+      </header>
+      <div className="page-content">
+        {isUploading ? (
+          <Loading message="Uploading files" />
+        ) : !hasSubmitted ? (
+          <>
+            <UploadSection onFilesSelected={handleFilesSelected} />
+            {localCollection.length > 0 && (
+              <div className="selected-files-section">
+                <h2 className="section-heading">Selected Files</h2>
+                <CollectionTable collection={localCollection} onRemove={handleRemoveFile} readOnly />
+                <button
+                  type="button"
+                  className="submit-button"
+                  onClick={handleUpload}
+                >
+                  Submit
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div>
+            <h2 className="section-heading">Audio Collection Editor</h2>
+            {isLoadingCollection ? (
+              <Loading message="Loading collection" />
+            ) : (
+              <>
+                <CollectionTable
+                  collection={uploadedCollection}
+                  showDownload
+                  selectedFiles={selectedForDownload}
+                  onSelectionChange={setSelectedForDownload}
+                />
+                <button
+                  type="button"
+                  className={`submit-button ${styles.downloadButton}`}
+                  onClick={handleDownload}
+                  disabled={selectedForDownload.size === 0 || isDownloading}
+                >
+                  {isDownloading ? 'Downloading...' : `Download Selected (${selectedForDownload.size})`}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </>
   );
 }

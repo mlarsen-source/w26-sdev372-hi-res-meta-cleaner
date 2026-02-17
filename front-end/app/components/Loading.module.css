@@ -1,3 +1,4 @@
+/* Container */
 .loading {
   display: flex;
   align-items: center;
@@ -5,19 +6,21 @@
   padding: 2rem;
 }
 
+/* Text */
 .loading-text {
   font-size: 1rem;
   color: #374151;
 }
 
+/* Dot animation */
 .loading-dots {
   display: flex;
   gap: 0.25rem;
 }
 
 .loading-dots span {
-  width: 6px;
-  height: 6px;
+  width: 0.375rem;
+  height: 0.375rem;
   background-color: #2563eb;
   border-radius: 50%;
   animation: pulse 1.4s ease-in-out infinite;

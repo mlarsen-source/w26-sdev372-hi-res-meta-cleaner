@@ -1,3 +1,4 @@
+/* Page-level helpers (kept local to avoid global bleed) */
 .loginPrompt {
   text-align: center;
   padding: 2rem;

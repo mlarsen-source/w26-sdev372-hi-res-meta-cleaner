@@ -82,7 +82,7 @@ export default function CollectionTable({
   };
 
   return (
-    <table className={styles.collectionTable}>
+    <table className={`${styles.collectionTable} ${readOnly ? styles.compact : ""}`}>
       <thead>
         <tr>
           {showSelectionCheckbox && (
@@ -130,6 +130,17 @@ export default function CollectionTable({
           />
         ))}
       </tbody>
+      <tfoot>
+        <tr className={styles.tableFooterRow}>
+          <td colSpan={
+            headers.length +
+            (showSelectionCheckbox ? 1 : 0) +
+            (showDownload ? 1 : 0)
+          }>
+            {/* spacer footer row for visual balance */}
+          </td>
+        </tr>
+      </tfoot>
     </table>
   );
 }
