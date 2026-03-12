@@ -19,6 +19,17 @@ jobs:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:deploy
 
+      - name: Debug Tailscale
+        run: |
+          echo "Checking Tailscale status..."
+          tailscale status
+
+          echo "Testing connectivity..."
+          ping -c 4 100.103.112.53 || {
+            echo "❌ Cannot reach server over Tailscale"
+            exit 1
+          }
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
