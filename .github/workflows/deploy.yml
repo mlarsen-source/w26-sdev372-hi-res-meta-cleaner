@@ -21,6 +21,15 @@ jobs:
 
       - name: Debug Tailscale
         run: |
+          echo "Tailscale version:"
+          tailscale version
+
+          echo "Runner Tailscale IP:"
+          tailscale ip
+
+          echo "Network status:"
+          tailscale status
+
           echo "Checking Tailscale status..."
           tailscale status
 
@@ -28,12 +37,12 @@ jobs:
           ping -c 4 100.103.112.53 || {
             echo "❌ Cannot reach server over Tailscale"
             exit 1
-          }
+        }
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
-          host: 100.103.112.53
+          host: ${{ secrets.DEPLOY_USER }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
