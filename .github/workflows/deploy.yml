@@ -45,8 +45,11 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ${{ secrets.DEPLOY_PATH }} || { echo "❌ Failed to change directory to ${{ secrets.DEPLOY_PATH }}"; exit 1; }
+            set -euo pipefail
+
+            cd "${{ secrets.DEPLOY_PATH }}" || { echo "❌ Failed to change directory to ${{ secrets.DEPLOY_PATH }}"; exit 1; }
             echo "✅ Entered deploy directory"
-            git pull origin main
-            docker compose pull  
-            docker compose up --build -d
+
+            git pull origin main || { echo "❌ git pull failed"; exit 1; }
+            docker compose pull || { echo "❌ docker compose pull failed"; exit 1; }
+            docker compose up --build -d || { echo "❌ docker compose up failed"; exit 1; }
