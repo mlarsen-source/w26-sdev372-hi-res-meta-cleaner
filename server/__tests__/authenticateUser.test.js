@@ -15,25 +15,40 @@ const mockRes = () => {
 
 describe('authenticateUser', () => {
   it('sets req.user and calls next() for a valid token', () => {
+    // Arrange
     const token = generateAccessToken(7);
     const req = { cookies: { accessToken: token } };
     const next = vi.fn();
+
+    // Act
     authenticateUser(req, mockRes(), next);
+
+    // Assert
     expect(next).toHaveBeenCalledOnce();
     expect(req.user).toEqual({ user_id: 7 });
   });
 
   it('returns 401 when the accessToken cookie is missing', () => {
+    // Arrange
     const req = { cookies: {} };
     const res = mockRes();
+
+    // Act
     authenticateUser(req, res, vi.fn());
+
+    // Assert
     expect(res.status).toHaveBeenCalledWith(401);
   });
 
   it('returns 401 for an invalid token', () => {
+    // Arrange
     const req = { cookies: { accessToken: 'bad.token.value' } };
     const res = mockRes();
+
+    // Act
     authenticateUser(req, res, vi.fn());
+
+    // Assert
     expect(res.status).toHaveBeenCalledWith(401);
   });
 });

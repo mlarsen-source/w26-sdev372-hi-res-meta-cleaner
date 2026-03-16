@@ -13,29 +13,46 @@ beforeAll(() => {
 
 describe('JWT utilities', () => {
   it('generateAccessToken returns a JWT-formatted string', () => {
+    // Act
     const token = generateAccessToken(1);
+
+    // Assert
     expect(typeof token).toBe('string');
     expect(token.split('.').length).toBe(3);
   });
 
   it('generateAccessToken encodes the correct user_id in the payload', () => {
+    // Arrange
     const token = generateAccessToken(42);
+
+    // Act
     const payload = verifyAccessToken(token);
+
+    // Assert
     expect(payload.user_id).toBe(42);
   });
 
   it('verifyAccessToken returns the payload for a valid token', () => {
+    // Arrange
     const token = generateAccessToken(5);
+
+    // Act
     const decoded = verifyAccessToken(token);
+
+    // Assert
     expect(decoded.user_id).toBe(5);
   });
 
   it('verifyAccessToken throws for an invalid token string', () => {
+    // Act / Assert
     expect(() => verifyAccessToken('not.a.valid.token')).toThrow();
   });
 
   it('verifyRefreshToken throws when given an access token (wrong secret)', () => {
+    // Arrange
     const accessToken = generateAccessToken(1);
+
+    // Act / Assert
     expect(() => verifyRefreshToken(accessToken)).toThrow();
   });
 });
