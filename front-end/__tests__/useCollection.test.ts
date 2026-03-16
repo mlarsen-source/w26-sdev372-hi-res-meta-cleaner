@@ -29,6 +29,7 @@ describe('useCollection', () => {
   });
 
   it('fetchCollection populates uploadedCollection from API response', async () => {
+    // Arrange
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: true,
       json: async () => mockApiResponse,
@@ -36,16 +37,19 @@ describe('useCollection', () => {
 
     const { result } = renderHook(() => useCollection(API_URL));
 
+    // Act
     await act(async () => {
       await result.current.fetchCollection();
     });
 
+    // Assert
     expect(result.current.uploadedCollection).toHaveLength(1);
     expect(result.current.uploadedCollection[0].title).toBe('Song Title');
     expect(result.current.uploadedCollection[0].artist).toBe('Artist Name');
   });
 
   it('fetchCollection normalizes the response shape to AudioFile', async () => {
+    // Arrange
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: true,
       json: async () => mockApiResponse,
@@ -53,10 +57,12 @@ describe('useCollection', () => {
 
     const { result } = renderHook(() => useCollection(API_URL));
 
+    // Act
     await act(async () => {
       await result.current.fetchCollection();
     });
 
+    // Assert
     const file = result.current.uploadedCollection[0];
     expect(file.id).toBe(1);
     expect(file.filename).toBe('song.mp3');
@@ -64,22 +70,25 @@ describe('useCollection', () => {
   });
 
   it('handleDownload does nothing when no files are selected', async () => {
+    // Arrange
     const { result } = renderHook(() => useCollection(API_URL));
 
+    // Act
     await act(async () => {
       await result.current.handleDownload();
     });
 
+    // Assert
     expect(fetch).not.toHaveBeenCalled();
   });
 
   it('handleDownload calls /api/download with the selected file IDs', async () => {
+    // Arrange
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: true,
       blob: async () => new Blob(['zip'], { type: 'application/zip' }),
     } as Response);
 
-    // Render hook before mocking createElement so renderHook's container is unaffected
     const { result } = renderHook(() => useCollection(API_URL));
 
     act(() => {
@@ -94,10 +103,12 @@ describe('useCollection', () => {
       click: vi.fn(),
     } as unknown as HTMLAnchorElement);
 
+    // Act
     await act(async () => {
       await result.current.handleDownload();
     });
 
+    // Assert
     expect(fetch).toHaveBeenCalledWith(
       `${API_URL}/api/download`,
       expect.objectContaining({

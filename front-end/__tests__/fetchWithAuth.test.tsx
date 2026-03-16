@@ -7,7 +7,6 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
-// Helper: renders AuthProvider and exposes fetchWithAuth via a callback
 function renderFetchWithAuth(callback: (fn: (input: RequestInfo, init?: RequestInit) => Promise<Response>) => void) {
   function Consumer() {
     const { fetchWithAuth } = useAuth();
@@ -32,19 +31,24 @@ describe('fetchWithAuth', () => {
   });
 
   it('returns the response normally on a 200', async () => {
+    // Arrange
     vi.mocked(fetch).mockResolvedValueOnce({ ok: true, status: 200 } as Response);
 
     let result: Response | undefined;
+
+    // Act
     await act(async () => {
       renderFetchWithAuth(async (fetchWithAuth) => {
         result = await fetchWithAuth('http://localhost:3001/api/metadata');
       });
     });
 
+    // Assert
     expect(result?.status).toBe(200);
   });
 
   it('calls /api/refresh then retries on 401 with "token expired"', async () => {
+    // Arrange
     vi.mocked(fetch)
       .mockResolvedValueOnce({
         ok: false,
@@ -53,21 +57,24 @@ describe('fetchWithAuth', () => {
           json: async () => ({ message: 'Token expired' }),
         }),
       } as unknown as Response)
-      .mockResolvedValueOnce({ ok: true, status: 200 } as Response) // refresh
-      .mockResolvedValueOnce({ ok: true, status: 200 } as Response); // retry
+      .mockResolvedValueOnce({ ok: true, status: 200 } as Response)
+      .mockResolvedValueOnce({ ok: true, status: 200 } as Response);
 
+    // Act
     await act(async () => {
       renderFetchWithAuth(async (fetchWithAuth) => {
         await fetchWithAuth('http://localhost:3001/api/metadata');
       });
     });
 
+    // Assert
     const calls = vi.mocked(fetch).mock.calls.map((c) => c[0]);
     expect(calls.some((url) => String(url).includes('/api/refresh'))).toBe(true);
     expect(fetch).toHaveBeenCalledTimes(3);
   });
 
   it('does NOT call /api/refresh on a 401 without "token expired"', async () => {
+    // Arrange
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: false,
       status: 401,
@@ -76,12 +83,14 @@ describe('fetchWithAuth', () => {
       }),
     } as unknown as Response);
 
+    // Act
     await act(async () => {
       renderFetchWithAuth(async (fetchWithAuth) => {
         await fetchWithAuth('http://localhost:3001/api/metadata');
       });
     });
 
+    // Assert
     const calls = vi.mocked(fetch).mock.calls.map((c) => c[0]);
     expect(calls.some((url) => String(url).includes('/api/refresh'))).toBe(false);
     expect(fetch).toHaveBeenCalledTimes(1);

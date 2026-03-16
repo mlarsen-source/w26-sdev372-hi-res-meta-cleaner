@@ -41,10 +41,12 @@ describe('useUpload', () => {
   });
 
   it('handleRemoveFile removes the file at the given index', async () => {
+    // Arrange
     vi.mocked(fetch).mockResolvedValue({ ok: true } as Response);
 
     const { result } = renderHook(() => useUpload(API_URL));
 
+    // Act
     await act(async () => {
       await result.current.handleFilesSelected([makeFile('a.mp3'), makeFile('b.mp3')]);
     });
@@ -53,12 +55,15 @@ describe('useUpload', () => {
       result.current.handleRemoveFile(0);
     });
 
+    // Assert
     expect(result.current.localCollection).toHaveLength(1);
   });
 
   it('resetFiles clears the local collection and state', async () => {
+    // Arrange
     const { result } = renderHook(() => useUpload(API_URL));
 
+    // Act
     await act(async () => {
       await result.current.handleFilesSelected([makeFile('song.mp3')]);
     });
@@ -67,15 +72,18 @@ describe('useUpload', () => {
       result.current.resetFiles();
     });
 
+    // Assert
     expect(result.current.localCollection).toHaveLength(0);
     expect(result.current.uploadError).toBeNull();
   });
 
   it('handleUpload calls /api/upload with a FormData body', async () => {
+    // Arrange
     vi.mocked(fetch).mockResolvedValueOnce({ ok: true } as Response);
 
     const { result } = renderHook(() => useUpload(API_URL));
 
+    // Act
     await act(async () => {
       await result.current.handleFilesSelected([makeFile('song.mp3')]);
     });
@@ -84,6 +92,7 @@ describe('useUpload', () => {
       await result.current.handleUpload();
     });
 
+    // Assert
     expect(fetch).toHaveBeenCalledWith(
       `${API_URL}/api/upload`,
       expect.objectContaining({ method: 'POST' })
@@ -91,6 +100,7 @@ describe('useUpload', () => {
   });
 
   it('handleUpload sets uploadError on a 409 response', async () => {
+    // Arrange
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: false,
       status: 409,
@@ -99,6 +109,7 @@ describe('useUpload', () => {
 
     const { result } = renderHook(() => useUpload(API_URL));
 
+    // Act
     await act(async () => {
       await result.current.handleFilesSelected([makeFile('song.mp3')]);
     });
@@ -107,6 +118,7 @@ describe('useUpload', () => {
       await result.current.handleUpload();
     });
 
+    // Assert
     expect(result.current.uploadError).toBeTruthy();
     expect(result.current.duplicateFilenames.has('song.mp3')).toBe(true);
   });
