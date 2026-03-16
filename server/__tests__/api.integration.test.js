@@ -4,15 +4,6 @@ import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { hashPassword } from "../src/utils/hashPassword.js";
 
-// Mock dependencies before they are imported by the routes
-const { user } = await import("../src/models/User.js");
-const { audioFile } = await import("../src/models/AudioFile.js");
-const { metadata } = await import("../src/models/Metadata.js");
-const { parseFile } = await import("music-metadata");
-const { prepareFilesForDownload, streamFilesAsZip } = await import(
-  "../src/services/downloadService.js"
-);
-
 vi.mock("../src/models/User.js", () => ({
   user: { create: vi.fn(), findOne: vi.fn() },
 }));
@@ -33,7 +24,14 @@ vi.mock("../src/services/downloadService.js", () => ({
   streamFilesAsZip: vi.fn(),
 }));
 
-// Import router and error handler after mocks are set up
+import { user } from "../src/models/User.js";
+import { audioFile } from "../src/models/AudioFile.js";
+import { metadata } from "../src/models/Metadata.js";
+import { parseFile } from "music-metadata";
+import {
+  prepareFilesForDownload,
+  streamFilesAsZip,
+} from "../src/services/downloadService.js";
 import apiRouter from "../src/routes/routes.js";
 import { errorHandler } from "../src/middleware/errorHandler.js";
 import { generateAccessToken } from "../src/utils/jwt.js";
@@ -54,7 +52,7 @@ function authCookie(userId = 1) {
   return `accessToken=${generateAccessToken(userId)}`;
 }
 
-describe("API integration", () => {
+describe("API routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

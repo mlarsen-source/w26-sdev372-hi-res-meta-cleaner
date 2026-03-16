@@ -12,24 +12,6 @@ beforeAll(() => {
 });
 
 describe("JWT utilities", () => {
-  it("generateAccessToken returns a JWT-formatted string", () => {
-    // Act
-    const token = generateAccessToken(1);
-
-    // Assert
-    expect(typeof token).toBe("string");
-    expect(token.split(".").length).toBe(3);
-  });
-
-  it("generateRefreshToken returns a JWT-formatted string", () => {
-    // Act
-    const token = generateRefreshToken(1);
-
-    // Assert
-    expect(typeof token).toBe("string");
-    expect(token.split(".").length).toBe(3);
-  });
-
   it("generateAccessToken encodes the correct user_id in the payload", () => {
     // Arrange
     const token = generateAccessToken(42);

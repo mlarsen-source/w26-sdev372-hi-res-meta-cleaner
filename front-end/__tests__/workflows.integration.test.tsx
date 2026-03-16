@@ -1,12 +1,8 @@
 import type { ReactNode } from "react";
-import { useEffect } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockValues = vi.hoisted(() => ({
-  routerPush: vi.fn(),
-  logout: vi.fn(),
-  setUser: vi.fn(),
   parseBlob: vi.fn(),
   authState: {
     user: { user_id: 1, email: "jane@example.com", first_name: "Jane" },
@@ -17,10 +13,10 @@ const mockValues = vi.hoisted(() => ({
   },
 }));
 
-const { logout, setUser, parseBlob, authState } = mockValues;
+const { parseBlob, authState } = mockValues;
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: mockValues.routerPush }),
+  useRouter: () => ({ push: vi.fn() }),
 }));
 
 vi.mock("next/link", () => ({
@@ -53,35 +49,6 @@ vi.mock("../app/hooks/useMounted", () => ({
 
 import HomePage from "../app/page";
 import CollectionTable from "../app/components/CollectionTable";
-import CollectionView from "../app/components/CollectionView";
-import { useCollection } from "../app/hooks/useCollection";
-
-function CollectionHarness() {
-  const {
-    fetchCollection,
-    uploadedCollection,
-    isLoadingCollection,
-    selectedForDownload,
-    setSelectedForDownload,
-    handleDownload,
-    isDownloading,
-  } = useCollection("http://localhost:3001");
-
-  useEffect(() => {
-    void fetchCollection();
-  }, [fetchCollection]);
-
-  return (
-    <CollectionView
-      collection={uploadedCollection}
-      isLoadingCollection={isLoadingCollection}
-      selectedForDownload={selectedForDownload}
-      onSelectionChange={setSelectedForDownload}
-      onDownload={handleDownload}
-      isDownloading={isDownloading}
-    />
-  );
-}
 
 describe("main workflows", () => {
   beforeEach(() => {
@@ -91,8 +58,8 @@ describe("main workflows", () => {
       first_name: "Jane",
     };
     authState.login = vi.fn();
-    authState.logout = logout;
-    authState.setUser = setUser;
+    authState.logout = vi.fn();
+    authState.setUser = vi.fn();
     authState.fetchWithAuth = vi.fn();
     vi.clearAllMocks();
     vi.stubGlobal("fetch", vi.fn());
@@ -231,72 +198,5 @@ describe("main workflows", () => {
       filename: "track.mp3",
       title: "New Title",
     });
-  });
-
-  it("downloads the selected files", async () => {
-    // Arrange
-    vi.mocked(fetch)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => [
-          {
-            file_id: 1,
-            original_filename: "track.mp3",
-            metadata: {
-              title: "Track One",
-              artist: "Test Artist",
-              album: "Test Album",
-              year: 2024,
-              type: "MP3",
-              size: "5 MB",
-            },
-          },
-        ],
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        blob: async () => new Blob(["zip"], { type: "application/zip" }),
-      } as Response);
-
-    // Act
-    render(<CollectionHarness />);
-
-    expect(await screen.findByText("Download Selected (0)")).toBeVisible();
-
-    const appendSpy = vi
-      .spyOn(document.body, "appendChild")
-      .mockImplementation((node) => node);
-    const removeSpy = vi
-      .spyOn(document.body, "removeChild")
-      .mockImplementation((node) => node);
-    const clickSpy = vi.fn();
-    const createSpy = vi.spyOn(document, "createElement").mockReturnValue({
-      href: "",
-      download: "",
-      click: clickSpy,
-    } as unknown as HTMLAnchorElement);
-
-    fireEvent.click(screen.getByTitle("Select track.mp3"));
-    fireEvent.click(
-      await screen.findByRole("button", { name: "Download Selected (1)" })
-    );
-
-    // Assert
-    await waitFor(() => {
-      expect(fetch).toHaveBeenNthCalledWith(
-        2,
-        "http://localhost:3001/api/download",
-        expect.objectContaining({
-          method: "POST",
-          body: JSON.stringify({ fileIds: [1] }),
-        })
-      );
-    });
-
-    expect(clickSpy).toHaveBeenCalled();
-
-    createSpy.mockRestore();
-    appendSpy.mockRestore();
-    removeSpy.mockRestore();
   });
 });

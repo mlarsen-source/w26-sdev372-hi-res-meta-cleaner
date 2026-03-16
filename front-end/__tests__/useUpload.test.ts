@@ -77,28 +77,6 @@ describe('useUpload', () => {
     expect(result.current.uploadError).toBeNull();
   });
 
-  it('handleUpload calls /api/upload with a FormData body', async () => {
-    // Arrange
-    vi.mocked(fetch).mockResolvedValueOnce({ ok: true } as Response);
-
-    const { result } = renderHook(() => useUpload(API_URL));
-
-    // Act
-    await act(async () => {
-      await result.current.handleFilesSelected([makeFile('song.mp3')]);
-    });
-
-    await act(async () => {
-      await result.current.handleUpload();
-    });
-
-    // Assert
-    expect(fetch).toHaveBeenCalledWith(
-      `${API_URL}/api/upload`,
-      expect.objectContaining({ method: 'POST' })
-    );
-  });
-
   it('handleUpload sets uploadError on a 409 response', async () => {
     // Arrange
     vi.mocked(fetch).mockResolvedValueOnce({

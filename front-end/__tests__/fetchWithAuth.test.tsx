@@ -7,15 +7,24 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
-function renderFetchWithAuth(callback: (fn: (input: RequestInfo, init?: RequestInit) => Promise<Response>) => void) {
-  function Consumer() {
-    const { fetchWithAuth } = useAuth();
-    useEffect(() => { callback(fetchWithAuth); }, [fetchWithAuth]);
-    return null;
-  }
+let fetchWithAuthFn: ((input: RequestInfo, init?: RequestInit) => Promise<Response>) | undefined;
+
+function Consumer({ onReady }: { onReady: (fn: (input: RequestInfo, init?: RequestInit) => Promise<Response>) => void }) {
+  const { fetchWithAuth } = useAuth();
+
+  useEffect(() => {
+    onReady(fetchWithAuth);
+  }, [fetchWithAuth, onReady]);
+
+  return null;
+}
+
+function renderFetchWithAuth() {
   render(
     <AuthProvider>
-      <Consumer />
+      <Consumer onReady={(fn) => {
+        fetchWithAuthFn = fn;
+      }} />
     </AuthProvider>
   );
 }
@@ -24,6 +33,7 @@ describe('fetchWithAuth', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
     localStorage.clear();
+    fetchWithAuthFn = undefined;
   });
 
   afterEach(() => {
@@ -37,10 +47,10 @@ describe('fetchWithAuth', () => {
     let result: Response | undefined;
 
     // Act
+    renderFetchWithAuth();
+
     await act(async () => {
-      renderFetchWithAuth(async (fetchWithAuth) => {
-        result = await fetchWithAuth('http://localhost:3001/api/metadata');
-      });
+      result = await fetchWithAuthFn?.('http://localhost:3001/api/metadata');
     });
 
     // Assert
@@ -56,15 +66,15 @@ describe('fetchWithAuth', () => {
         clone: () => ({
           json: async () => ({ message: 'Token expired' }),
         }),
-      } as unknown as Response)
+    } as unknown as Response)
       .mockResolvedValueOnce({ ok: true, status: 200 } as Response)
       .mockResolvedValueOnce({ ok: true, status: 200 } as Response);
 
     // Act
+    renderFetchWithAuth();
+
     await act(async () => {
-      renderFetchWithAuth(async (fetchWithAuth) => {
-        await fetchWithAuth('http://localhost:3001/api/metadata');
-      });
+      await fetchWithAuthFn?.('http://localhost:3001/api/metadata');
     });
 
     // Assert
@@ -73,7 +83,7 @@ describe('fetchWithAuth', () => {
     expect(fetch).toHaveBeenCalledTimes(3);
   });
 
-  it('does NOT call /api/refresh on a 401 without "token expired"', async () => {
+  it('does not call /api/refresh on a 401 without "token expired"', async () => {
     // Arrange
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: false,
@@ -84,10 +94,10 @@ describe('fetchWithAuth', () => {
     } as unknown as Response);
 
     // Act
+    renderFetchWithAuth();
+
     await act(async () => {
-      renderFetchWithAuth(async (fetchWithAuth) => {
-        await fetchWithAuth('http://localhost:3001/api/metadata');
-      });
+      await fetchWithAuthFn?.('http://localhost:3001/api/metadata');
     });
 
     // Assert
