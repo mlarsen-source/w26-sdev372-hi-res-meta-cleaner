@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "cy:open": "node scripts/run-cypress.mjs open",
     "cy:run": "node scripts/run-cypress.mjs run",
     "test:e2e": "start-server-and-test dev http://localhost:3000 cy:run",

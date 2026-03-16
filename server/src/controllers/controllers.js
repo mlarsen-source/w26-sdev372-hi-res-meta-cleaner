@@ -204,8 +204,12 @@ export function refreshToken(req, res) {
  * @param {Response} res - Returns 200 on successful logout
  */
 export function logoutUser(req, res) {
-  const { maxAge: _a, ...clearAccessOptions } = accessTokenCookieOptions;
-  const { maxAge: _r, ...clearRefreshOptions } = refreshTokenCookieOptions;
+  const clearAccessOptions = { ...accessTokenCookieOptions };
+  const clearRefreshOptions = { ...refreshTokenCookieOptions };
+
+  delete clearAccessOptions.maxAge;
+  delete clearRefreshOptions.maxAge;
+
   res.clearCookie("accessToken", clearAccessOptions);
   res.clearCookie("refreshToken", clearRefreshOptions);
   res.status(200).json({ message: "Logged out successfully" });

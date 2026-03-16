@@ -26,6 +26,7 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node ./src/server.js",
+    "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -45,6 +46,7 @@
     "sequelize": "^6.37.7"
   },
   "devDependencies": {
+    "eslint": "^9.39.2",
     "nodemon": "^3.1.11",
     "supertest": "^7.2.2",
     "vitest": "^4.0.18"

@@ -11,7 +11,6 @@ try {
 } catch (e) {
   // If creation fails, we still allow multer to attempt and let the error be handled upstream
   // but log for easier debugging.
-  // eslint-disable-next-line no-console
   console.error("Failed to create uploads directory:", uploadsPath, e);
 }
 

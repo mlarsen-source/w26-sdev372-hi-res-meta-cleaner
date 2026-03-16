@@ -1,5 +1,5 @@
 // Centralized error handling middleware
-export const errorHandler = (err, req, res, next) => {
+export const errorHandler = (err, req, res, _next) => {
   console.error(err);
 
   // Handle Sequelize unique constraint errors

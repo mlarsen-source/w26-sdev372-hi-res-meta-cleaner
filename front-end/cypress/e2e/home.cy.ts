@@ -1,3 +1,5 @@
+/// <reference types="cypress" />
+
 const testUser = {
   user_id: 1,
   email: "jane@example.com",
@@ -8,7 +10,8 @@ const testUser = {
 function visitSignedOut(path = "/") {
   cy.visit(path, {
     onBeforeLoad(win) {
-      win.localStorage.removeItem("hires_meta_user");
+      const appWindow = win as Window;
+      appWindow.localStorage.removeItem("hires_meta_user");
     },
   });
 }
@@ -16,7 +19,8 @@ function visitSignedOut(path = "/") {
 function visitSignedIn(path = "/") {
   cy.visit(path, {
     onBeforeLoad(win) {
-      win.localStorage.setItem("hires_meta_user", JSON.stringify(testUser));
+      const appWindow = win as Window;
+      appWindow.localStorage.setItem("hires_meta_user", JSON.stringify(testUser));
     },
   });
 }
