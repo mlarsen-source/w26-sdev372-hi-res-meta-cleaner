@@ -18,7 +18,7 @@ router.post("/api/logout", logoutUser);
 // Protected routes
 router.post("/api/upload", authenticateUser, upload.array("files"), validateFiles, createAudioRecords, extractMetadata, sendUploadResponse);
 router.post("/api/download", authenticateUser, validateFileIdsArray, downloadAudioAsZip);
-router.post("/api/update", validateMetadata, updateFileMetadata);
+router.post("/api/update", authenticateUser, validateMetadata, updateFileMetadata);
 router.get("/api/metadata", authenticateUser, getMetadata);
 
 export default router;

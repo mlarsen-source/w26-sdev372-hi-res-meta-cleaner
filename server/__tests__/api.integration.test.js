@@ -240,22 +240,42 @@ describe("API routes", () => {
 
   it("updates a filename and metadata fields", async () => {
     // Arrange
+    audioFile.findOne.mockResolvedValue({
+      file_id: 1,
+      user_id: 1,
+      original_filename: "track.mp3",
+    });
     audioFile.update.mockResolvedValue([1]);
     metadata.upsert.mockResolvedValue([{}, true]);
 
     // Act
-    const response = await request(app).post("/api/update").send({
-      file_id: 1,
-      filename: "cleaned-track.mp3",
-      title: "Cleaned Title",
-      artist: "Cleaned Artist",
-    });
+    const response = await request(app)
+      .post("/api/update")
+      .set("Cookie", authCookie())
+      .send({
+        file_id: 1,
+        filename: "cleaned-track.mp3",
+        title: "Cleaned Title",
+        artist: "Cleaned Artist",
+      });
 
     // Assert
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
       message: "Metadata updated successfully",
     });
+  });
+
+  it("blocks metadata updates without auth", async () => {
+    // Act
+    const response = await request(app).post("/api/update").send({
+      file_id: 1,
+      title: "Updated Title",
+    });
+
+    // Assert
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({ error: "Authentication required" });
   });
 
   it("returns 404 when download has no matching files", async () => {

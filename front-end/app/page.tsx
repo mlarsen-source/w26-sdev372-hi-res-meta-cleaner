@@ -10,15 +10,14 @@ import CollectionView from './components/CollectionView';
 import { useUpload } from './hooks/useUpload';
 import { useCollection } from './hooks/useCollection';
 import { useMounted } from './hooks/useMounted';
-
-const apiBaseUrl = process.env.NEXT_PUBLIC_LOCAL_SYSVAR || 'http://localhost:3001';
+import { API_BASE_URL } from './lib/apiBaseUrl';
 
 export default function HomePage() {
   const { user } = useAuth();
   const mounted = useMounted();
 
-  const { fetchCollection, ...collection } = useCollection(apiBaseUrl);
-  const upload = useUpload(apiBaseUrl);
+  const { fetchCollection, ...collection } = useCollection(API_BASE_URL);
+  const upload = useUpload(API_BASE_URL);
 
   useEffect(() => {
     if (upload.hasSubmitted) fetchCollection();

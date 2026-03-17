@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { validateCreateUser, validateFileIdsArray } from '../src/middleware/validateRequest.js';
+import { validateCreateUser, validateMetadata, validateFileIdsArray } from '../src/middleware/validateRequest.js';
 
 const mockRes = () => {
   const res = {};
@@ -66,6 +66,32 @@ describe('validateFileIdsArray', () => {
 
     // Act
     validateFileIdsArray(req, res, vi.fn());
+
+    // Assert
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+});
+
+describe('validateMetadata', () => {
+  it('calls next() when file_id is present', () => {
+    // Arrange
+    const req = { body: { file_id: 1, title: 'Song' } };
+    const next = vi.fn();
+
+    // Act
+    validateMetadata(req, mockRes(), next);
+
+    // Assert
+    expect(next).toHaveBeenCalledOnce();
+  });
+
+  it('returns 400 when file_id is missing', () => {
+    // Arrange
+    const req = { body: { title: 'Song' } };
+    const res = mockRes();
+
+    // Act
+    validateMetadata(req, res, vi.fn());
 
     // Assert
     expect(res.status).toHaveBeenCalledWith(400);

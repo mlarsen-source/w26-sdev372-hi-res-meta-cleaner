@@ -107,7 +107,10 @@ export async function streamFilesAsZip(files, res, next) {
 
   const archive = archiver("zip", { zlib: { level: 9 } });
 
-  archive.on("error", (err) => next(err));
+  archive.on("error", (err) => {
+    cleanupTempFiles(files);
+    next(err);
+  });
   archive.on("end", () => cleanupTempFiles(files));
 
   archive.pipe(res);

@@ -1,12 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
+const mockValues = vi.hoisted(() => ({
+  fetchWithAuth: vi.fn(),
+}));
+const { fetchWithAuth: mockFetchWithAuth } = mockValues;
+
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
 vi.mock('../app/components/AuthProvider', () => ({
-  useAuth: () => ({ setUser: vi.fn() }),
+  useAuth: () => ({ fetchWithAuth: mockFetchWithAuth }),
 }));
 
 vi.mock('../app/components/useAudioMetadata', () => ({
@@ -32,8 +37,8 @@ const makeFile = (name: string) => new File(['audio'], name, { type: 'audio/mpeg
 
 describe('useUpload', () => {
   beforeEach(() => {
-    vi.stubGlobal('fetch', vi.fn());
     vi.stubGlobal('alert', vi.fn());
+    mockFetchWithAuth.mockReset();
   });
 
   afterEach(() => {
@@ -41,9 +46,6 @@ describe('useUpload', () => {
   });
 
   it('handleRemoveFile removes the file at the given index', async () => {
-    // Arrange
-    vi.mocked(fetch).mockResolvedValue({ ok: true } as Response);
-
     const { result } = renderHook(() => useUpload(API_URL));
 
     // Act
@@ -79,7 +81,7 @@ describe('useUpload', () => {
 
   it('handleUpload sets uploadError on a 409 response', async () => {
     // Arrange
-    vi.mocked(fetch).mockResolvedValueOnce({
+    mockFetchWithAuth.mockResolvedValueOnce({
       ok: false,
       status: 409,
       text: async () => JSON.stringify({ error: 'File "song.mp3" already exists' }),
@@ -99,5 +101,11 @@ describe('useUpload', () => {
     // Assert
     expect(result.current.uploadError).toBeTruthy();
     expect(result.current.duplicateFilenames.has('song.mp3')).toBe(true);
+    expect(mockFetchWithAuth).toHaveBeenCalledWith(
+      `${API_URL}/api/upload`,
+      expect.objectContaining({
+        method: 'POST',
+      })
+    );
   });
 });

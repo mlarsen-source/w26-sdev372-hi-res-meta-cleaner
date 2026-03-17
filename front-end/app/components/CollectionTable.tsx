@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAuth } from "./AuthProvider";
 import { AudioFile } from "../types/audio";
 import { FileRow } from "./FileRow";
 import { handleFileChange } from "./fileUtils";
+import { splitFilenameAndExtension } from "../lib/fileNameUtils";
 import styles from "./CollectionTable.module.css";
 
 interface CollectionTableProps {
@@ -93,6 +95,7 @@ export default function CollectionTable({
   filterTerm = "",
   enableSorting = false,
 }: CollectionTableProps) {
+  const { fetchWithAuth } = useAuth();
   const [files, setFiles] = useState<AudioFile[]>(collection);
   const [sortConfig, setSortConfig] = useState<{
     field: SortField;
@@ -179,15 +182,6 @@ export default function CollectionTable({
     });
   };
 
-  const splitFilenameAndExtension = (filename: string) => {
-    const lastDotIndex = filename.lastIndexOf(".");
-    if (lastDotIndex === -1) return { fileNameWithoutExt: filename, fileExtension: "" };
-    return {
-      fileNameWithoutExt: filename.slice(0, lastDotIndex),
-      fileExtension: filename.slice(lastDotIndex),
-    };
-  };
-
   const handleFilenameChange = (index: number, newName: string) => {
     const file = files[index];
     const { fileExtension } = splitFilenameAndExtension(file.filename);
@@ -206,7 +200,7 @@ export default function CollectionTable({
     field: keyof AudioFile,
     value: string
   ) => {
-    await handleFileChange(index, field, value, files, setFiles);
+    await handleFileChange(index, field, value, files, setFiles, fetchWithAuth);
   };
 
   return (
@@ -217,6 +211,7 @@ export default function CollectionTable({
             <th>
               <input
                 type="checkbox"
+                aria-label="Select all files"
                 onChange={(event) => handleSelectAll(event.target.checked)}
               />
             </th>
@@ -279,6 +274,7 @@ export default function CollectionTable({
             <th className={styles.selectAllHeader}>
               <input
                 type="checkbox"
+                aria-label="Select all files"
                 onChange={(event) => handleSelectAll(event.target.checked)}
                 className={styles.selectAllCheckbox}
               />

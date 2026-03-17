@@ -53,6 +53,7 @@ import CollectionView from "../app/components/CollectionView";
 
 describe("main workflows", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     authState.user = {
       user_id: 1,
       email: "jane@example.com",
@@ -61,10 +62,19 @@ describe("main workflows", () => {
     authState.login = vi.fn();
     authState.logout = vi.fn();
     authState.setUser = vi.fn();
-    authState.fetchWithAuth = vi.fn();
-    vi.clearAllMocks();
-    vi.stubGlobal("fetch", vi.fn());
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({}),
+        text: async () => "",
+      } as Response)
+    );
     vi.stubGlobal("alert", vi.fn());
+    authState.fetchWithAuth = vi.fn((input: RequestInfo, init: RequestInit = {}) =>
+      fetch(input, { credentials: "include", ...init })
+    );
   });
 
   it("uploads a file and loads the collection", async () => {

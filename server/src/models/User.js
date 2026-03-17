@@ -43,5 +43,3 @@ export const user = sequelize.define(
   }
 );
 
-// pizza
-

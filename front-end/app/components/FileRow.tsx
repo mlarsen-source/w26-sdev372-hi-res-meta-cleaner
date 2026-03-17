@@ -1,4 +1,5 @@
 import { AudioFile } from '../types/audio';
+import { splitFilenameAndExtension } from '../lib/fileNameUtils';
 import styles from './CollectionTable.module.css';
 
 interface FileRowProps {
@@ -28,15 +29,6 @@ export function FileRow({
   showSelectionCheckbox = false,
   isDuplicate = false,
 }: FileRowProps) {
-  const splitFilenameAndExtension = (filename: string) => {
-    const lastDotIndex = filename.lastIndexOf(".");
-    if (lastDotIndex === -1) return { fileNameWithoutExt: filename, fileExtension: "" };
-    return {
-      fileNameWithoutExt: filename.slice(0, lastDotIndex),
-      fileExtension: filename.slice(lastDotIndex),
-    };
-  };
-
   const { fileNameWithoutExt, fileExtension } = splitFilenameAndExtension(file.filename);
 
   return (

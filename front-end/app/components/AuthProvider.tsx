@@ -1,7 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "../lib/apiBaseUrl";
 
 type User = {
   user_id: number | string;
@@ -34,8 +35,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return null;
   });
   const router = useRouter();
-  const apiBaseUrl = process.env.NEXT_PUBLIC_LOCAL_SYSVAR || 'http://localhost:3001';
-
   const setUser = (updatedUser: User | null) => {
     setUserState(updatedUser);
     if (updatedUser) localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedUser));
@@ -48,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      await fetch(`${apiBaseUrl}/api/logout`, { method: "POST", credentials: "include" });
+      await fetch(`${API_BASE_URL}/api/logout`, { method: "POST", credentials: "include" });
     } catch (error) {
       console.error('Logout request failed:', error);
     }
@@ -62,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     let requestUrl = input;
     if (typeof input === 'string' && input.startsWith('/api')) {
-      requestUrl = `${apiBaseUrl}${input}`;
+      requestUrl = `${API_BASE_URL}${input}`;
     }
 
     let response = await fetch(requestUrl, requestInit);
@@ -75,17 +74,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('Failed to parse 401 response:', error);
       }
 
-      const errorMessage = (responseData as { message?: string })?.message || "";
+      const errorMessage =
+        (responseData as { error?: string; message?: string })?.error ||
+        (responseData as { error?: string; message?: string })?.message ||
+        "";
+
       if (typeof errorMessage === "string" && errorMessage.toLowerCase().includes("token expired")) {
-        const refreshResponse = await fetch(`${apiBaseUrl}/api/refresh`, { method: "POST", credentials: "include" });
+        const refreshResponse = await fetch(`${API_BASE_URL}/api/refresh`, { method: "POST", credentials: "include" });
         if (refreshResponse.ok) {
-          response = await fetch(input, requestInit);
+          response = await fetch(requestUrl, requestInit);
           return response;
         }
-        setUser(null);
-        router.push("/login");
-        return response;
       }
+
+      setUser(null);
+      router.push("/login");
     }
 
     return response;
@@ -102,18 +105,6 @@ export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
-}
-
-export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!user) router.push("/login");
-  }, [user, router]);
-
-  if (!user) return null;
-  return <>{children}</>;
 }
 
 export default AuthProvider;

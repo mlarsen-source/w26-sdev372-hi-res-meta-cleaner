@@ -3,6 +3,14 @@ import { renderHook, act } from '@testing-library/react';
 import { useCollection } from '../app/hooks/useCollection';
 
 const API_URL = 'http://localhost:3001';
+const mockValues = vi.hoisted(() => ({
+  fetchWithAuth: vi.fn(),
+}));
+const { fetchWithAuth: mockFetchWithAuth } = mockValues;
+
+vi.mock('../app/components/AuthProvider', () => ({
+  useAuth: () => ({ fetchWithAuth: mockFetchWithAuth }),
+}));
 
 const mockApiResponse = [
   {
@@ -21,11 +29,11 @@ const mockApiResponse = [
 
 describe('useCollection', () => {
   beforeEach(() => {
-    vi.stubGlobal('fetch', vi.fn());
     vi.stubGlobal('URL', {
       createObjectURL: vi.fn(() => 'blob:test'),
       revokeObjectURL: vi.fn(),
     });
+    mockFetchWithAuth.mockReset();
   });
 
   afterEach(() => {
@@ -35,7 +43,7 @@ describe('useCollection', () => {
 
   it('fetchCollection loads and normalizes API data', async () => {
     // Arrange
-    vi.mocked(fetch).mockResolvedValueOnce({
+    mockFetchWithAuth.mockResolvedValueOnce({
       ok: true,
       json: async () => mockApiResponse,
     } as Response);
@@ -55,11 +63,12 @@ describe('useCollection', () => {
     expect(file.title).toBe('Song Title');
     expect(file.artist).toBe('Artist Name');
     expect(file.year).toBe('2020');
+    expect(mockFetchWithAuth).toHaveBeenCalledWith(`${API_URL}/api/metadata`);
   });
 
   it('handleDownload calls /api/download with the selected file IDs', async () => {
     // Arrange
-    vi.mocked(fetch).mockResolvedValueOnce({
+    mockFetchWithAuth.mockResolvedValueOnce({
       ok: true,
       blob: async () => new Blob(['zip'], { type: 'application/zip' }),
     } as Response);
@@ -79,7 +88,7 @@ describe('useCollection', () => {
     });
 
     // Assert
-    expect(fetch).toHaveBeenCalledWith(
+    expect(mockFetchWithAuth).toHaveBeenCalledWith(
       `${API_URL}/api/download`,
       expect.objectContaining({
         method: 'POST',

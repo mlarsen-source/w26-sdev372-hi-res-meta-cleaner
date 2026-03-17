@@ -11,5 +11,3 @@ audioFile.hasOne(metadata, { foreignKey: "file_id" });
 metadata.belongsTo(audioFile, { foreignKey: "file_id" });
 
 export { audioFile, metadata, user };
-
-// pizza
