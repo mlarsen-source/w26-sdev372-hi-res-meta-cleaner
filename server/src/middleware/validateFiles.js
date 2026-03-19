@@ -27,7 +27,7 @@ const ALLOWED_EXTENSIONS = [".mp3", ".wav", ".flac", ".ogg", ".aac", ".m4a", ".a
  * @param {Object} file - Multer file object
  * @returns {boolean} True if file is a valid audio type
  */
-function isAudioFile(file) {
+export function isAudioFile(file) {
   const mimeMatch = ALLOWED_AUDIO_TYPES.includes(file.mimetype);
   const extMatch = ALLOWED_EXTENSIONS.some((ext) =>
     file.originalname.toLowerCase().endsWith(ext)

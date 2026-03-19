@@ -1,6 +1,7 @@
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { isAudioFile } from "../middleware/validateFiles.js";
 
 const UPLOADS_DIR = "uploads/";
 
@@ -11,7 +12,6 @@ try {
 } catch (e) {
   // If creation fails, we still allow multer to attempt and let the error be handled upstream
   // but log for easier debugging.
-  // eslint-disable-next-line no-console
   console.error("Failed to create uploads directory:", uploadsPath, e);
 }
 
@@ -27,4 +27,22 @@ const storage = multer.diskStorage({
   },
 });
 
-export const upload = multer({ storage });
+function buildInvalidFileError(file) {
+  const error = new Error(
+    `Invalid file type(s): ${file.originalname}. Only audio files are allowed.`
+  );
+  error.status = 400;
+  return error;
+}
+
+export const upload = multer({
+  storage,
+  fileFilter(req, file, cb) {
+    if (isAudioFile(file)) {
+      cb(null, true);
+      return;
+    }
+
+    cb(buildInvalidFileError(file));
+  },
+});

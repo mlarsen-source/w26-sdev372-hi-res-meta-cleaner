@@ -70,3 +70,5 @@ Thumbs.db
 next-env.d.ts
 
 .settings.local.json
+
+*.txt

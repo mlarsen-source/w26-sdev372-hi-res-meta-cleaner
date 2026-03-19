@@ -8,7 +8,14 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# ── Stage 2: Build the Next.js application ───────────────────────────
+# ── Stage 2: Test ────────────────────────────────────────────────────
+FROM node:20-alpine AS test
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+CMD ["npm", "test"]
+
+# ── Stage 3: Build the Next.js application ───────────────────────────
 FROM node:20-alpine AS builder
 WORKDIR /app
 

@@ -1,104 +1,140 @@
-import { register } from "module";
+/// <reference types="cypress" />
+
+const testUser = {
+  user_id: 1,
+  email: "jane@example.com",
+  first_name: "Jane",
+  last_name: "Doe",
+};
+
+function visitSignedOut(path = "/") {
+  cy.visit(path, {
+    onBeforeLoad(win) {
+      const appWindow = win as Window;
+      appWindow.localStorage.removeItem("hires_meta_user");
+    },
+  });
+}
+
+function visitSignedIn(path = "/") {
+  cy.visit(path, {
+    onBeforeLoad(win) {
+      const appWindow = win as Window;
+      appWindow.localStorage.setItem("hires_meta_user", JSON.stringify(testUser));
+    },
+  });
+}
 
 describe("Home Page", () => {
-    beforeEach(() => { cy.visit("/") });
+  it("displays the header on load", () => {
+    // Act
+    visitSignedOut();
 
-    it("displays the header on load", () => {
-        cy.get("h1").should("be.visible");
-        cy.get("h1").should("have.text", "Hi-Res Meta Cleaner");
-    });
+    // Assert
+    cy.get("h1").should("be.visible").and("have.text", "Hi-Res Meta Cleaner");
+  });
 
-    //After running this test, restart backend since a user can only register once
-    it("registering users", () => {
-        cy.get("nav").should("be.visible");
-        cy.get("[data-testid='login-link']").should("be.visible");
-        cy.get("[data-testid='login-link']").should("have.text", "Login");
-        cy.get("[data-testid='register-link']").should("be.visible");
-        cy.get("[data-testid='register-link']").should("have.text", "Register");
+  it("shows the login prompt on home when signed out", () => {
+    // Act
+    visitSignedOut();
 
-        cy.get("a[href='/register']").click()
-        cy.url().should("include", "/register");
-        cy.get("h2").should("be.visible", "Register");
+    // Assert
+    cy.contains("Welcome to Hi-Res Meta Cleaner").should("be.visible");
+    cy.contains("Please log in to upload and manage your audio files.").should(
+      "be.visible"
+    );
+    cy.contains("button", "Go to Login").should("be.visible");
+  });
 
-        cy.get('[data-testid="firstname-input"]').should("be.visible");
-        cy.get('[data-testid="firstname-input"]').type("Miku");
-        cy.get('[data-testid="lastname-input"]').should("be.visible");
-        cy.get('[data-testid="lastname-input"]').type("Hatsune");
-        cy.get('[data-testid="email-input"]').should("be.visible");
-        cy.get('[data-testid="email-input"]').type("HatsuneMiku39@vmail.com");
-        cy.get('[data-testid="password-input1"]').should("be.visible");
-        cy.get('[data-testid="password-input1"]').type("leek86cecb");
-        cy.get('[data-testid="password-input2"]').should("be.visible");
-        cy.get('[data-testid="password-input2"]').type("leek86cecb");
+  it("registers a user and redirects to login", () => {
+    // Arrange
+    cy.intercept("POST", "**/api/user", {
+      statusCode: 201,
+      body: {
+        user_id: 2,
+        email: "miku@example.com",
+        first_name: "Miku",
+        last_name: "Hatsune",
+      },
+    }).as("register");
 
-        cy.get('[class="submit-button"]').should("be.visible");
-        cy.get('[class="submit-button"]').should("have.text", "Register");
-        cy.get("[class='submit-button']").click()
+    // Act
+    visitSignedOut("/");
+    cy.get("[data-testid='register-link']").click();
 
-        cy.url().should("include", "/login");
-        cy.get("h2").should("be.visible", "Login");
+    cy.get("h2").should("have.text", "Register");
+    cy.get('[data-testid="firstname-input"]').type("Miku");
+    cy.get('[data-testid="lastname-input"]').type("Hatsune");
+    cy.get('[data-testid="email-input"]').type("miku@example.com");
+    cy.get('[data-testid="password-input1"]').type("leek86cecb");
+    cy.get('[data-testid="password-input2"]').type("leek86cecb");
+    cy.get("form.auth-form").contains("button", "Register").click();
 
-        cy.get('[data-testid="email-input"]').should("be.visible");
-        cy.get('[data-testid="email-input"]').type("HatsuneMiku39@vmail.com");
-        cy.get('[data-testid="password-input"]').should("be.visible");
-        cy.get('[data-testid="password-input"]').type("leek86cecb");
+    // Assert
+    cy.wait("@register")
+      .its("request.body")
+      .should("deep.equal", {
+        firstName: "Miku",
+        lastName: "Hatsune",
+        email: "miku@example.com",
+        password: "leek86cecb",
+      });
+    cy.url().should("include", "/login");
+    cy.get("h2").should("have.text", "Login");
+  });
 
-        cy.get('[class="submit-button"]').should("be.visible");
-        cy.get('[class="submit-button"]').should("have.text", "Login");
-        cy.get("[class='submit-button']").click()
+  it("logs in user and shows the greeting", () => {
+    // Arrange
+    cy.intercept("POST", "**/api/login", {
+      statusCode: 200,
+      body: testUser,
+    }).as("login");
 
-        cy.url().should("include", "/");
-        cy.get("[class='user-greeting']").should("be.visible")
-        cy.get("[class='user-greeting']").should("have.text", "Miku");
-    });
+    // Act
+    visitSignedOut("/login");
+    cy.get('[data-testid="email-input"]').type(testUser.email);
+    cy.get('[data-testid="password-input"]').type("secret123");
+    cy.get("form.auth-form").contains("button", "Login").click();
 
-    it("logging in user", () => {
-        cy.get("[data-testid='login-link']").should("be.visible");
-        cy.get("[data-testid='login-link']").should("have.text", "Login");
-        cy.get("a[href='/login']").click()
+    // Assert
+    cy.wait("@login");
+    cy.url().should("include", "/");
+    cy.get(".user-greeting").should("be.visible").and("have.text", "Jane");
+  });
 
-        cy.url().should("include", "/login");
-        cy.get("h2").should("be.visible", "Login");
+  it("shows an error for a bad login", () => {
+    // Arrange
+    cy.intercept("POST", "**/api/login", {
+      statusCode: 401,
+      body: { error: "Invalid email or password" },
+    }).as("login");
 
-        cy.get('[data-testid="email-input"]').should("be.visible");
-        cy.get('[data-testid="email-input"]').type("HatsuneMiku39@vmail.com");
-        cy.get('[data-testid="password-input"]').should("be.visible");
-        cy.get('[data-testid="password-input"]').type("leek86cecb");
+    // Act
+    visitSignedOut("/login");
+    cy.get('[data-testid="email-input"]').type("wrong@example.com");
+    cy.get('[data-testid="password-input"]').type("wrongpass");
+    cy.get("form.auth-form").contains("button", "Login").click();
 
-        cy.get('[class="submit-button"]').should("be.visible");
-        cy.get('[class="submit-button"]').should("have.text", "Login");
-        cy.get("[class='submit-button']").click()
+    // Assert
+    cy.wait("@login");
+    cy.contains("Invalid email or password").should("be.visible");
+    cy.url().should("include", "/login");
+  });
 
-        cy.url().should("include", "/");
-        cy.get("[class='user-greeting']").should("be.visible")
-        cy.get("[class='user-greeting']").should("have.text", "Miku");
-    })
+  it("logs out user", () => {
+    // Arrange
+    cy.intercept("POST", "**/api/logout", {
+      statusCode: 200,
+      body: { message: "Logged out successfully" },
+    }).as("logout");
 
-    it("logging out user", () => {
-        cy.get("[data-testid='login-link']").should("be.visible");
-        cy.get("[data-testid='login-link']").should("have.text", "Login");
-        cy.get("a[href='/login']").click()
+    // Act
+    visitSignedIn("/");
+    cy.get(".user-greeting").should("be.visible").and("have.text", "Jane");
+    cy.contains("button", "Logout").click();
 
-        cy.url().should("include", "/login");
-        cy.get("h2").should("be.visible", "Login");
-
-        cy.get('[data-testid="email-input"]').should("be.visible");
-        cy.get('[data-testid="email-input"]').type("HatsuneMiku39@vmail.com");
-        cy.get('[data-testid="password-input"]').should("be.visible");
-        cy.get('[data-testid="password-input"]').type("leek86cecb");
-
-        cy.get('[class="submit-button"]').should("be.visible");
-        cy.get('[class="submit-button"]').should("have.text", "Login");
-        cy.get("[class='submit-button']").click()
-
-        cy.url().should("include", "/");
-        cy.get("[class='user-greeting']").should("be.visible")
-        cy.get("[class='user-greeting']").should("have.text", "Miku");
-
-        cy.get('.logout-button').should("be.visible");
-        cy.get(".logout-button").should("have.text", "Logout");
-        cy.get(".logout-button").click()
-
-        cy.url().should("include", "/login");
-    });
+    // Assert
+    cy.wait("@logout");
+    cy.url().should("include", "/login");
+  });
 });

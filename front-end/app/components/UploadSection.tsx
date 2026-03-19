@@ -28,7 +28,7 @@ const ALLOWED_EXTENSIONS = [
   ".aiff",
 ];
 
-function isAudioFile(file: File): boolean {
+export function isAudioFile(file: File): boolean {
   const mimeMatch = ALLOWED_AUDIO_TYPES.includes(file.type);
   const extMatch = ALLOWED_EXTENSIONS.some((ext) =>
     file.name.toLowerCase().endsWith(ext)

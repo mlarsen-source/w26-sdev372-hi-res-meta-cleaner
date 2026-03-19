@@ -3,11 +3,23 @@
 # docker-compose.yml, which reads them from the root .env file.
 
 # Debian-based image — required for bcrypt native compilation
-FROM node:20-bullseye-slim
+FROM node:20-bullseye-slim AS base
 WORKDIR /app
 
 # Run as non-root for security
 RUN addgroup --system app && adduser --system --ingroup app app
+
+# ── Test stage (includes devDependencies for vitest) ──────────────────────────
+FROM base AS test
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY src ./src
+COPY __tests__ ./__tests__
+COPY vitest.config.js ./
+CMD ["npm", "test"]
+
+# ── Production stage ──────────────────────────────────────────────────────────
+FROM base AS production
 
 # Install production dependencies only
 COPY package.json package-lock.json ./

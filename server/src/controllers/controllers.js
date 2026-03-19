@@ -5,12 +5,32 @@ import { hashPassword } from "../utils/hashPassword.js";
 import { upsertMetadata } from "../repos/repos.js";
 import { mapAudioFileResponse, mapUploadedFileResponse } from "../utils/responseMappers.js";
 import { prepareFilesForDownload, streamFilesAsZip } from "../services/downloadService.js";
+import fs from "fs/promises";
+import path from "path";
 import {
   generateAccessToken,
   verifyRefreshToken,
   accessTokenCookieOptions,
   refreshTokenCookieOptions,
 } from "../utils/jwt.js";
+
+const UPLOADS_DIR = "uploads";
+
+async function cleanupUploadedFiles(files = []) {
+  for (const file of files) {
+    const filePath = file?.path ?? path.join(UPLOADS_DIR, file.filename ?? "");
+
+    if (!filePath || !file.filename) {
+      continue;
+    }
+
+    try {
+      await fs.unlink(filePath);
+    } catch {
+      // Ignore cleanup failures so the original request error can continue.
+    }
+  }
+}
 
 /**
  * Creates a new user account with a hashed password.
@@ -52,10 +72,18 @@ export async function createAudioRecords(req, res, next) {
     const userId = req.user.user_id;
     const files = req.files;
 
-    const uploaded = [];
+    const duplicateName = files
+      .map((file) => file.originalname)
+      .find((name, index, names) => names.indexOf(name) !== index);
+
+    if (duplicateName) {
+      await cleanupUploadedFiles(files);
+      return res.status(409).json({
+        error: `File "${duplicateName}" already exists.`,
+      });
+    }
 
     for (const file of files) {
-
       const existing = await audioFile.findOne({
         where: {
           user_id: userId,
@@ -64,10 +92,16 @@ export async function createAudioRecords(req, res, next) {
       });
 
       if (existing) {
+        await cleanupUploadedFiles(files);
         return res.status(409).json({
           error: `File "${file.originalname}" already exists.`,
         });
       }
+    }
+
+    const uploaded = [];
+
+    for (const file of files) {
 
       const audio = await audioFile.create({
         user_id: userId,
@@ -85,6 +119,7 @@ export async function createAudioRecords(req, res, next) {
     req.uploadedFiles = uploaded;
     next();
   } catch (err) {
+    await cleanupUploadedFiles(req.files);
     next(err);
   }
 }
@@ -111,12 +146,23 @@ export function sendUploadResponse(req, res) {
  */
 export async function updateFileMetadata(req, res, next) {
   try {
+    const userId = req.user.user_id;
     const { file_id, filename, ...metadataFields } = req.body;
+    const existingFile = await audioFile.findOne({
+      where: {
+        file_id,
+        user_id: userId,
+      },
+    });
 
-    if (filename && file_id) {
+    if (!existingFile) {
+      return res.status(404).json({ error: "Audio file not found" });
+    }
+
+    if (filename) {
       await audioFile.update(
         { original_filename: filename },
-        { where: { file_id } }
+        { where: { file_id, user_id: userId } }
       );
     }
 
@@ -204,8 +250,12 @@ export function refreshToken(req, res) {
  * @param {Response} res - Returns 200 on successful logout
  */
 export function logoutUser(req, res) {
-  const { maxAge: _a, ...clearAccessOptions } = accessTokenCookieOptions;
-  const { maxAge: _r, ...clearRefreshOptions } = refreshTokenCookieOptions;
+  const clearAccessOptions = { ...accessTokenCookieOptions };
+  const clearRefreshOptions = { ...refreshTokenCookieOptions };
+
+  delete clearAccessOptions.maxAge;
+  delete clearRefreshOptions.maxAge;
+
   res.clearCookie("accessToken", clearAccessOptions);
   res.clearCookie("refreshToken", clearRefreshOptions);
   res.status(200).json({ message: "Logged out successfully" });

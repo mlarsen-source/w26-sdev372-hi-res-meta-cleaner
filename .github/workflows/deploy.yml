@@ -1,0 +1,55 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Install Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:deploy
+
+      - name: Debug Tailscale
+        run: |
+          echo "Tailscale version:"
+          tailscale version
+
+          echo "Runner Tailscale IP:"
+          tailscale ip
+
+          echo "Network status:"
+          tailscale status
+
+          echo "Checking Tailscale status..."
+          tailscale status
+
+          echo "Testing connectivity..."
+          ping -c 4 100.103.112.53 || {
+            echo "❌ Cannot reach server over Tailscale"
+            exit 1
+          }
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -euo pipefail
+
+            cd "${{ secrets.DEPLOY_PATH }}" || { echo "❌ Failed to change directory to ${{ secrets.DEPLOY_PATH }}"; exit 1; }
+            echo "✅ Entered deploy directory"
+
+            git pull origin main || { echo "❌ git pull failed"; exit 1; }
+            docker compose up --build -d || { echo "❌ docker compose up failed"; exit 1; }

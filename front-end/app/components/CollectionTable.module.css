@@ -39,6 +39,61 @@
   text-align: left;
 }
 
+.collectionTable th.sortableHeader {
+  padding: 0;
+}
+
+.sortButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  height: 100%;
+  background: none;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sortButton:focus-visible {
+  outline: 0.125rem solid #0b3b6f;
+  outline-offset: -0.125rem;
+}
+
+.sortIcon {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  min-width: 0.75rem;
+}
+
+.sortArrow {
+  width: 0;
+  height: 0;
+  border-left: 0.25rem solid transparent;
+  border-right: 0.25rem solid transparent;
+  opacity: 0.35;
+}
+
+.sortArrowUp {
+  border-bottom: 0.35rem solid currentColor;
+}
+
+.sortArrowDown {
+  border-top: 0.35rem solid currentColor;
+}
+
+.sortArrowActive {
+  opacity: 1;
+}
+
 .collectionTable tbody tr:hover {
   background-color: #f9fafb;
 }
