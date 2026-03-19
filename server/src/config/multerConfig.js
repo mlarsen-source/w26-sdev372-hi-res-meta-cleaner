@@ -1,6 +1,7 @@
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { isAudioFile } from "../middleware/validateFiles.js";
 
 const UPLOADS_DIR = "uploads/";
 
@@ -26,4 +27,22 @@ const storage = multer.diskStorage({
   },
 });
 
-export const upload = multer({ storage });
+function buildInvalidFileError(file) {
+  const error = new Error(
+    `Invalid file type(s): ${file.originalname}. Only audio files are allowed.`
+  );
+  error.status = 400;
+  return error;
+}
+
+export const upload = multer({
+  storage,
+  fileFilter(req, file, cb) {
+    if (isAudioFile(file)) {
+      cb(null, true);
+      return;
+    }
+
+    cb(buildInvalidFileError(file));
+  },
+});

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import NavBar from "../components/NavBar";
+import { API_BASE_URL } from "../lib/apiBaseUrl";
 
 export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
@@ -14,8 +15,6 @@ export default function RegisterPage() {
   const [hasSubmitted, setHasSubmitted] = useState(true);
   const setIsUploading = () => { };
   const router = useRouter();
-  const LocalSYSVAR =
-    process.env.NEXT_PUBLIC_LOCAL_SYSVAR || "http://localhost:3001";
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -26,7 +25,7 @@ export default function RegisterPage() {
     }
 
     try {
-      const res = await fetch(`${LocalSYSVAR}/api/user`, {
+      const res = await fetch(`${API_BASE_URL}/api/user`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ firstName, lastName, email, password }),

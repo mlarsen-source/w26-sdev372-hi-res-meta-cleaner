@@ -1,7 +1,9 @@
 import { useState, useCallback } from 'react';
+import { useAuth } from '../components/AuthProvider';
 import { AudioFile } from '../types/audio';
 
 export function useCollection(apiBaseUrl: string) {
+  const { fetchWithAuth } = useAuth();
   const [uploadedCollection, setUploadedCollection] = useState<AudioFile[]>([]);
   const [isLoadingCollection, setIsLoadingCollection] = useState(false);
   const [selectedForDownload, setSelectedForDownload] = useState<Set<number>>(new Set());
@@ -10,9 +12,8 @@ export function useCollection(apiBaseUrl: string) {
   const fetchCollection = useCallback(async () => {
     setIsLoadingCollection(true);
     try {
-      const response = await fetch(`${apiBaseUrl}/api/metadata`, {
-        credentials: 'include',
-      });
+      const response = await fetchWithAuth(`${apiBaseUrl}/api/metadata`);
+      if (response.status === 401) return;
       if (!response.ok) throw new Error('Failed to load metadata');
 
       const metadataResponse = await response.json();
@@ -38,7 +39,7 @@ export function useCollection(apiBaseUrl: string) {
     } finally {
       setIsLoadingCollection(false);
     }
-  }, [apiBaseUrl]);
+  }, [apiBaseUrl, fetchWithAuth]);
 
   const handleDownload = async () => {
     if (selectedForDownload.size === 0) return;
@@ -47,13 +48,13 @@ export function useCollection(apiBaseUrl: string) {
     try {
       const selectedFileIds = Array.from(selectedForDownload);
 
-      const response = await fetch(`${apiBaseUrl}/api/download`, {
+      const response = await fetchWithAuth(`${apiBaseUrl}/api/download`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fileIds: selectedFileIds }),
-        credentials: 'include',
       });
 
+      if (response.status === 401) return;
       if (!response.ok) throw new Error('Download failed');
 
       const zipBlob = await response.blob();

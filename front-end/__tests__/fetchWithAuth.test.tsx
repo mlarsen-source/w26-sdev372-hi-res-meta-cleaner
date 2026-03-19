@@ -64,7 +64,7 @@ describe('fetchWithAuth', () => {
         ok: false,
         status: 401,
         clone: () => ({
-          json: async () => ({ message: 'Token expired' }),
+          json: async () => ({ error: 'Token expired' }),
         }),
     } as unknown as Response)
       .mockResolvedValueOnce({ ok: true, status: 200 } as Response)
@@ -74,12 +74,14 @@ describe('fetchWithAuth', () => {
     renderFetchWithAuth();
 
     await act(async () => {
-      await fetchWithAuthFn?.('http://localhost:3001/api/metadata');
+      await fetchWithAuthFn?.('/api/metadata');
     });
 
     // Assert
-    const calls = vi.mocked(fetch).mock.calls.map((c) => c[0]);
+    const calls = vi.mocked(fetch).mock.calls.map((c) => String(c[0]));
+    expect(calls[0]).toBe('http://localhost:3001/api/metadata');
     expect(calls.some((url) => String(url).includes('/api/refresh'))).toBe(true);
+    expect(calls[2]).toBe('http://localhost:3001/api/metadata');
     expect(fetch).toHaveBeenCalledTimes(3);
   });
 

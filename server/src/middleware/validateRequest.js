@@ -19,6 +19,12 @@ export const validateMetadata = (req, res, next) => {
     });
   }
 
+  if (req.body.file_id === undefined || req.body.file_id === null) {
+    return res.status(400).json({
+      error: "file_id is required",
+    });
+  }
+
   next();
 };
 

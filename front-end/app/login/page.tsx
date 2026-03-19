@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../components/AuthProvider";
 import NavBar from "../components/NavBar";
+import { API_BASE_URL } from "../lib/apiBaseUrl";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -13,14 +14,12 @@ export default function LoginPage() {
   const setIsUploading = () => { };
   const router = useRouter();
   const { login } = useAuth();
-  const LocalSYSVAR =
-    process.env.NEXT_PUBLIC_LOCAL_SYSVAR || "http://localhost:3001";
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
     try {
-      const res = await fetch(`${LocalSYSVAR}/api/login`, {
+      const res = await fetch(`${API_BASE_URL}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -32,23 +31,18 @@ export default function LoginPage() {
         return;
       }
       const data = await res.json();
-      // backend may return either { user: {...} } or { user_id, email, ... }
-      let userObj = null;
-      if (data?.user) userObj = data.user;
-      else if (data?.user_id)
-        userObj = {
-          user_id: data.user_id,
-          email: data.email,
-          first_name: data.first_name,
-          last_name: data.last_name,
-        };
-
-      if (userObj) {
-        login(userObj);
-        router.push("/");
-      } else {
+      if (!data?.user_id) {
         setError("Login succeeded but no user returned");
+        return;
       }
+
+      login({
+        user_id: data.user_id,
+        email: data.email,
+        first_name: data.first_name,
+        last_name: data.last_name,
+      });
+      router.push("/");
     } catch (err) {
       setError("Login failed");
       console.error(err);

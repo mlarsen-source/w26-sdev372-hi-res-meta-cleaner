@@ -82,5 +82,3 @@ export const metadata = sequelize.define(
   }
 );
 
-// pizza
-
