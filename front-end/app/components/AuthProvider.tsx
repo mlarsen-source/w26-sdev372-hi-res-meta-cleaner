@@ -68,23 +68,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let response = await fetch(requestUrl, requestInit);
 
     if (response.status === 401) {
-      let responseData: unknown = null;
-      try {
-        responseData = await response.clone().json();
-      } catch (error) {
-        console.error('Failed to parse 401 response:', error);
+      const refreshResponse = await fetch(`${apiBaseUrl}/api/refresh`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (refreshResponse.ok) {
+        response = await fetch(requestUrl, requestInit);
       }
 
-      const errorMessage = (responseData as { message?: string })?.message || "";
-      if (typeof errorMessage === "string" && errorMessage.toLowerCase().includes("token expired")) {
-        const refreshResponse = await fetch(`${apiBaseUrl}/api/refresh`, { method: "POST", credentials: "include" });
-        if (refreshResponse.ok) {
-          response = await fetch(input, requestInit);
-          return response;
-        }
+      if (response.status === 401) {
         setUser(null);
         router.push("/login");
-        return response;
       }
     }
 

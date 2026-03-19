@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { AudioFile } from "../types/audio";
 import { FileRow } from "./FileRow";
 import { handleFileChange } from "./fileUtils";
+import { useAuth } from "./AuthProvider";
 import styles from "./CollectionTable.module.css";
 
 interface CollectionTableProps {
@@ -25,6 +26,7 @@ export default function CollectionTable({
   readOnly = false,
   duplicateFilenames,
 }: CollectionTableProps) {
+  const { fetchWithAuth } = useAuth();
   const [files, setFiles] = useState<AudioFile[]>(collection);
 
   useEffect(() => {
@@ -85,7 +87,7 @@ export default function CollectionTable({
     field: keyof AudioFile,
     value: string
   ) => {
-    await handleFileChange(index, field, value, files, setFiles);
+    await handleFileChange(index, field, value, files, setFiles, fetchWithAuth);
   };
 
   return (

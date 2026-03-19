@@ -1,11 +1,14 @@
 import { AudioFile } from '../types/audio';
 
+type AuthFetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
+
 export async function handleFileChange(
   index: number,
   field: keyof AudioFile,
   value: string,
   files: AudioFile[],
-  setFiles: React.Dispatch<React.SetStateAction<AudioFile[]>>
+  setFiles: React.Dispatch<React.SetStateAction<AudioFile[]>>,
+  fetchWithAuth: AuthFetch
 ) {
   const updatedFiles = [...files];
   const file = updatedFiles[index];
@@ -35,7 +38,7 @@ export async function handleFileChange(
   const baseUrl = process.env.NEXT_PUBLIC_LOCAL_SYSVAR || 'http://localhost:3001';
 
   try {
-    await fetch(`${baseUrl}/api/update`, {
+    await fetchWithAuth(`${baseUrl}/api/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(metadata),

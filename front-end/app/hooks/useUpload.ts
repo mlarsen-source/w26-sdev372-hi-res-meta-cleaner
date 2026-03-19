@@ -1,12 +1,10 @@
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '../components/AuthProvider';
 import { extractMetadata } from '../components/useAudioMetadata';
 import { AudioFile } from '../types/audio';
 
 export function useUpload(apiBaseUrl: string) {
-  const { setUser } = useAuth();
-  const router = useRouter();
+  const { fetchWithAuth } = useAuth();
   const [files, setFiles] = useState<File[]>([]);
   const [localCollection, setLocalCollection] = useState<AudioFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -44,19 +42,16 @@ export function useUpload(apiBaseUrl: string) {
       const formData = new FormData();
       files.forEach((file) => formData.append('files', file));
 
-      const response = await fetch(`${apiBaseUrl}/api/upload`, {
+      const response = await fetchWithAuth(`${apiBaseUrl}/api/upload`, {
         method: 'POST',
         body: formData,
-        credentials: 'include',
       });
 
       if (!response.ok) {
         const errorText = await response.text();
 
         if (response.status === 401) {
-          setUser(null);
           alert('Your session has expired. Please log in again.');
-          router.push('/login');
           return;
         }
 
@@ -67,7 +62,7 @@ export function useUpload(apiBaseUrl: string) {
             const match = (errorData.error as string)?.match(/File "(.+)" already exists/);
             if (match) setDuplicateFilenames(new Set([match[1]]));
           } catch {
-            // non-JSON body — no filename to highlight
+            // non-JSON body - no filename to highlight
           }
           return;
         }
